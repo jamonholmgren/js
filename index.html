@@ -468,10 +468,9 @@
       }
 
       function normalizeNewlines(code) {
-        // First, normalize to \n (in case there are any \r\n)
-        code = code.replace(/\r\n/g, "\n")
-        // Then, replace any remaining \r with \n
-        return code.replace(/\r/g, "\n")
+        code = code.replace(/\r\n/g, "\n").replace(/\r/g, "\n")
+        // also replace any U+00A0 non-breaking spaces with regular spaces
+        return code.replace(/\u00A0/g, " ")
       }
 
       // Copy the current code as a URL
