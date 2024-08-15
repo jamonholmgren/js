@@ -82,6 +82,13 @@
             const code = document.getElementById('code-box').value;
             const outputDiv = document.getElementById('output');
             outputDiv.textContent = '';
+            
+            // Temporarily override console.log to capture and display logs
+            const clog = console.log
+            console.log = function(message) {
+                const outputDiv = document.getElementById('output');
+                outputDiv.textContent += message + '\n';
+            };
 
             try {
                 const result = eval(code);
@@ -91,6 +98,8 @@
             } catch (error) {
                 outputDiv.textContent = error;
             }
+            
+            console.log = clog
         });
     </script>
 
