@@ -169,64 +169,64 @@
                 outputDiv.textContent += error;
             }
         });
-
+        
         let currentSession = '';
-        let originalSessionName = ''; // Track the original session name
+        let currentSessionId = ''; // Track the session ID
         
         function saveCurrentSession() {
             let sessionName = sessionNameInput.value.trim();
             
-            // If no session name is provided, use the current session name or generate a new one
+            // Generate a new session ID if it doesn't exist
+            if (!currentSessionId) {
+                currentSessionId = new Date().getTime().toString();
+            }
+            
+            // Use the current session name if no name is provided
             if (!sessionName) {
                 sessionName = currentSession || new Date().toLocaleString();
             }
             
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
         
-            // If the session name has changed, delete the old session
-            if (currentSession && currentSession !== sessionName) {
-                delete sessions[currentSession];
-            }
-        
-            // Save or update the session
-            sessions[sessionName] = codeBox.value;
-            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
-        
-            // Update the current and original session names
-            currentSession = sessionName;
-            originalSessionName = sessionName;
+            // If the session ID already exists, update the session name and code
+            sessions[currentSessionId] = { id: currentSessionId, name: sessionName, code: codeBox.value };
             
+            // Save the updated sessions back to localStorage
+            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+            
+            // Update the current session info
+            currentSession = sessionName;
             updateSessionsList();
         }
         
-        function loadSession(name) {
+        function loadSession(id) {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey));
-            if (sessions && sessions[name]) {
-                codeBox.value = sessions[name];
-                sessionNameInput.value = name;
-                currentSession = name;
-                originalSessionName = name; // Set the original session name when loading
+            if (sessions && sessions[id]) {
+                codeBox.value = sessions[id].code;
+                sessionNameInput.value = sessions[id].name;
+                currentSession = sessions[id].name;
+                currentSessionId = sessions[id].id; // Set the current session ID
             }
         }
-
+        
         function updateSessionsList() {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             sessionsList.innerHTML = '';
-            Object.keys(sessions).forEach(name => {
+            Object.values(sessions).forEach(session => {
                 const sessionItem = document.createElement('div');
                 sessionItem.className = 'session-item';
         
                 const sessionName = document.createElement('span');
-                sessionName.textContent = name;
-                sessionName.onclick = () => loadSession(name);
+                sessionName.textContent = session.name;
+                sessionName.onclick = () => loadSession(session.id);
                 
                 const deleteButton = document.createElement('button');
                 deleteButton.className = 'delete-button';
-                deleteButton.innerHTML = '🗑'; // Trash can emoji or use a FontAwesome icon
+                deleteButton.innerHTML = '🗑';
                 deleteButton.onclick = (event) => {
                     event.stopPropagation(); // Prevent triggering the session load
-                    if (confirm(`Are you sure you want to delete the session "${name}"?`)) {
-                        deleteSession(name);
+                    if (confirm(`Are you sure you want to delete the session "${session.name}"?`)) {
+                        deleteSession(session.id);
                     }
                 };
         
@@ -236,15 +236,16 @@
             });
         }
         
-        function deleteSession(name) {
+        function deleteSession(id) {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-            delete sessions[name];
+            delete sessions[id];
             localStorage.setItem(sessionsKey, JSON.stringify(sessions));
             updateSessionsList();
         
             // If the deleted session is currently loaded, clear the inputs
-            if (currentSession === name) {
+            if (currentSessionId === id) {
                 currentSession = '';
+                currentSessionId = '';
                 codeBox.value = '';
                 sessionNameInput.value = '';
             }
