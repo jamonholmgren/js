@@ -60,17 +60,27 @@
         box-sizing: border-box;
         font-family: monospace;
         line-height: 1.5em;
+        white-space: pre-wrap;
       }
 
       .action-buttons button {
         flex: 1;
         padding: 10px;
         font-size: 18px;
-        background-color: #4caf50;
+        /* pleasant dark grayish color */
+        background-color: #333;
         color: white;
         border: none;
         border-radius: 5px;
         cursor: pointer;
+      }
+
+      #run-button {
+        background-color: #4caf50;
+      }
+
+      #copy-url {
+        background-color: #008cba;
       }
 
       .running {
@@ -94,13 +104,15 @@
       }
 
       #output {
-        background-color: #fff;
+        background-color: #111;
+        color: #fff;
         border: 1px solid #ccc;
         border-radius: 5px;
         padding: 10px;
         box-sizing: border-box;
         white-space: pre-wrap;
         font-family: monospace;
+        min-height: 10em;
       }
 
       #sessions-list {
@@ -126,18 +138,15 @@
         font-size: 18px;
       }
 
-      #copy-url {
-        margin-top: 10px;
-        padding: 10px;
-        background-color: #008cba;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
+      .session-item .content-preview {
+        font-size: 14px;
+        color: #666;
+        display: block;
       }
 
       .error {
-        background-color: #ffcccc !important;
+        outline: 2px solid #ffcccc !important;
+        color: #ffcccc !important;
       }
 
       .active {
@@ -180,6 +189,7 @@
         <div class="action-buttons">
           <button id="run-button">Run Code</button>
           <button id="copy-url">Share</button>
+          <button id="new">New</button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
@@ -194,6 +204,8 @@
       const sessionNameInput = document.getElementById("session-name");
       const sessionsList = document.getElementById("sessions-list");
       const runButton = document.getElementById("run-button");
+      const copyUrlButton = document.getElementById("copy-url");
+      const newButton = document.getElementById("new");
 
       // Load all saved sessions on page load
       document.addEventListener("DOMContentLoaded", function () {
@@ -211,6 +223,9 @@
             document.title,
             window.location.pathname
           );
+        } else if (urlParams.has("id")) {
+          const id = urlParams.get("id");
+          loadSession(id);
         }
       });
 
@@ -275,6 +290,7 @@
 
         // Update the current session info
         currentSession = sessionName;
+
         updateSessionsList();
       }
 
@@ -287,6 +303,15 @@
           currentSessionId = sessions[id].id;
         }
         updateSessionsList();
+      }
+
+      function updateURL() {
+        if (!currentSessionId) return;
+        window.history.replaceState(
+          {},
+          document.title,
+          `${window.location.pathname}?id=${currentSessionId}`
+        );
       }
 
       function updateSessionsList() {
@@ -304,8 +329,16 @@
             }
 
             const sessionName = document.createElement("span");
-            sessionName.textContent = session.name;
+            sessionName.textContent = session.name.slice(0, 22);
             sessionItem.onclick = () => loadSession(session.id);
+
+            const contentPreview = document.createElement("span");
+            contentPreview.classList.add("content-preview");
+            contentPreview.textContent = session.code
+              .slice(0, 40)
+              .split("\n")
+              .find((line) => line.trim() !== "");
+            sessionName.appendChild(contentPreview);
 
             const deleteButton = document.createElement("button");
             deleteButton.className = "delete-button";
@@ -325,6 +358,7 @@
             sessionItem.appendChild(deleteButton);
             sessionsList.appendChild(sessionItem);
           });
+        updateURL();
       }
 
       function deleteSession(id) {
@@ -349,26 +383,32 @@
       }
 
       // Copy the current code as a URL
-      document
-        .getElementById("copy-url")
-        .addEventListener("click", function () {
-          let encodedCode = encodeURIComponent(codeBox.value);
-          // also convert parentheses to avoid URL encoding issues
-          encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29");
-          const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
-          navigator.clipboard
-            .writeText(url)
-            .then(() => {
-              // temporarily change the button text to indicate success
-              const copyButton = document.getElementById("copy-url");
-              copyButton.textContent = "Copied!";
-              setTimeout(() => (copyButton.textContent = "Share"), 2000);
-            })
-            .catch((err) => {
-              console.error("Failed to copy URL: ", err);
-              alert("Failed to copy URL, sorry! Check console for details.");
-            });
-        });
+      copyUrlButton.addEventListener("click", function () {
+        let encodedCode = encodeURIComponent(codeBox.value);
+        // also convert parentheses to avoid URL encoding issues
+        encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29");
+        const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
+        navigator.clipboard
+          .writeText(url)
+          .then(() => {
+            // temporarily change the button text to indicate success
+            const copyButton = document.getElementById("copy-url");
+            copyButton.textContent = "Copied!";
+            setTimeout(() => (copyButton.textContent = "Share"), 2000);
+          })
+          .catch((err) => {
+            console.error("Failed to copy URL: ", err);
+            alert("Failed to copy URL, sorry! Check console for details.");
+          });
+      });
+
+      newButton.addEventListener("click", function () {
+        currentSession = "";
+        currentSessionId = "";
+        codeBox.value = "";
+        sessionNameInput.value = "";
+        updateSessionsList();
+      });
     </script>
   </body>
 </html>
