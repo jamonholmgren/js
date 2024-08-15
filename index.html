@@ -616,7 +616,7 @@
       })
 
       function mode() {
-        return localStorage.getItem("mode")
+        return localStorage.getItem("mode") || "light"
       }
 
       function otherMode() {
