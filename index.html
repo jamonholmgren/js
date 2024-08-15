@@ -206,10 +206,22 @@
       const runButton = document.getElementById("run-button");
       const copyUrlButton = document.getElementById("copy-url");
       const newButton = document.getElementById("new");
+      const outputDiv = document.getElementById("output");
 
-      // Load all saved sessions on page load
       document.addEventListener("DOMContentLoaded", function () {
+        // Override console methods
+        ["log", "error", "warn", "info"].forEach(function (method) {
+          const originalMethod = console[method];
+          console[method] = function (...args) {
+            outputDiv.textContent += args.join(" ") + "\n";
+            originalMethod.apply(console, args);
+          };
+        });
+
+        // Load all saved sessions on page load
         loadSessions();
+
+        // check for shared or ID session in URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlCode = urlParams.get("code");
         if (urlCode) {
@@ -237,18 +249,8 @@
         runButton.classList.add("running");
 
         const code = codeBox.value;
-        const outputDiv = document.getElementById("output");
         outputDiv.classList.remove("error");
         outputDiv.textContent = "";
-
-        // Override console methods
-        ["log", "error", "warn", "info"].forEach(function (method) {
-          const originalMethod = console[method];
-          console[method] = function (...args) {
-            outputDiv.textContent += args.join(" ") + "\n";
-            originalMethod.apply(console, args);
-          };
-        });
 
         try {
           const result = eval(code);
@@ -307,6 +309,7 @@
 
       function updateURL() {
         if (!currentSessionId) return;
+
         window.history.replaceState(
           {},
           document.title,
@@ -409,6 +412,68 @@
         sessionNameInput.value = "";
         updateSessionsList();
       });
+
+      document
+        .getElementById("code-box")
+        .addEventListener("keydown", function (e) {
+          const codeBox = this;
+          const tabCharacter = "    "; // You can use '\t' for a real tab character or spaces.
+
+          if (e.key === "Tab" && !e.altKey && !e.ctrlKey && !e.metaKey) {
+            e.preventDefault();
+            const start = codeBox.selectionStart;
+            const end = codeBox.selectionEnd;
+
+            // Get the start of the line for the cursor start position
+            const beforeSelection = codeBox.value.slice(0, start);
+            const afterSelection = codeBox.value.slice(end);
+            const selectedText = codeBox.value.slice(start, end);
+
+            const startLine = beforeSelection.lastIndexOf("\n") + 1;
+            const endLine = start + selectedText.lastIndexOf("\n") + 1;
+            const selectedLines = codeBox.value
+              .slice(startLine, endLine)
+              .split("\n");
+
+            if (e.shiftKey) {
+              // Deindent: Remove tabCharacter from each line
+              const modifiedLines = selectedLines.map((line) => {
+                return line.startsWith(tabCharacter)
+                  ? line.slice(tabCharacter.length)
+                  : line;
+              });
+              const modifiedText = modifiedLines.join("\n");
+              codeBox.value =
+                beforeSelection.slice(0, startLine) +
+                modifiedText +
+                afterSelection.slice(endLine);
+
+              // Adjust cursor position
+              const newStart =
+                start -
+                (selectedLines[0].startsWith(tabCharacter)
+                  ? tabCharacter.length
+                  : 0);
+              const newEnd = newStart + modifiedText.length;
+              codeBox.selectionStart = newStart;
+              codeBox.selectionEnd = newEnd;
+            } else {
+              // Indent: Add tabCharacter to each line
+              const modifiedLines = selectedLines.map(
+                (line) => tabCharacter + line
+              );
+              const modifiedText = modifiedLines.join("\n");
+              codeBox.value =
+                beforeSelection.slice(0, startLine) +
+                modifiedText +
+                afterSelection.slice(endLine);
+
+              // Adjust cursor position
+              codeBox.selectionStart = start + tabCharacter.length;
+              codeBox.selectionEnd = start + modifiedText.length;
+            }
+          }
+        });
     </script>
   </body>
 </html>
