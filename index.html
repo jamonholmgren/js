@@ -17,11 +17,22 @@
             background-color: #f0f0f0;
         }
 
+        #session-name {
+            width: 90%;
+            max-width: 500px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
         #code-box {
             width: 90%;
             max-width: 500px;
             height: auto;
-            min-height: 20em; /* Set minimum height for 20 lines */
+            min-height: 20em;
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
@@ -29,7 +40,7 @@
             box-sizing: border-box;
             margin-bottom: 10px;
             font-family: monospace;
-            line-height: 1.5em; /* Adjust line height for readability */
+            line-height: 1.5em;
         }
 
         #run-button {
@@ -54,53 +65,140 @@
             box-sizing: border-box;
             white-space: pre-wrap;
             font-family: monospace;
+            margin-top: 10px;
+        }
+
+        #sessions-list {
+            width: 90%;
+            max-width: 500px;
+            margin-top: 20px;
+        }
+
+        .session-item {
+            background-color: #e0e0e0;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #copy-url {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
         }
     </style>
 </head>
 <body>
 
+    <input id="session-name" placeholder="Session Name (default is date/time)" autocapitalize="off" autocorrect="off">
     <textarea id="code-box" placeholder="Write your JavaScript code here..."
               autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="latin"></textarea>
     <button id="run-button">Run Code</button>
+    <button id="copy-url">Copy as URL</button>
     <div id="output"></div>
 
+    <div id="sessions-list"></div>
+
     <script>
-        // Override console methods to capture and display their output
-        ['log', 'error', 'warn', 'info'].forEach(function(method) {
-            const originalMethod = console[method];
-            console[method] = function(...args) {
-                const outputDiv = document.getElementById('output');
-                outputDiv.textContent += args.join(' ') + '\n';
-                originalMethod.apply(console, args);
-            };
-        });
-    
-        // Load the saved code from localStorage on page load
+        let currentSession = '';
+        const sessionsKey = 'jsSessions';
+        const codeBox = document.getElementById('code-box');
+        const sessionNameInput = document.getElementById('session-name');
+        const sessionsList = document.getElementById('sessions-list');
+
+        // Load all saved sessions on page load
         document.addEventListener('DOMContentLoaded', function() {
-            const savedCode = localStorage.getItem('jsCode');
-            if (savedCode) {
-                document.getElementById('code-box').value = savedCode;
+            loadSessions();
+            const urlParams = new URLSearchParams(window.location.search);
+            const urlCode = urlParams.get('code');
+            if (urlCode) {
+                codeBox.value = decodeURIComponent(urlCode);
+                sessionNameInput.value = 'Loaded from URL';
+                currentSession = 'Loaded from URL';
             }
         });
 
-        // Save the code to localStorage whenever it changes
-        document.getElementById('code-box').addEventListener('input', function() {
-            localStorage.setItem('jsCode', this.value);
-        });
+        // Save the code and session name to localStorage on input
+        codeBox.addEventListener('input', saveCurrentSession);
+        sessionNameInput.addEventListener('input', saveCurrentSession);
 
         document.getElementById('run-button').addEventListener('click', function() {
-            const code = document.getElementById('code-box').value;
+            const code = codeBox.value;
             const outputDiv = document.getElementById('output');
             outputDiv.textContent = '';
+
+            // Override console methods
+            ['log', 'error', 'warn', 'info'].forEach(function(method) {
+                const originalMethod = console[method];
+                console[method] = function(...args) {
+                    outputDiv.textContent += args.join(' ') + '\n';
+                    originalMethod.apply(console, args);
+                };
+            });
 
             try {
                 const result = eval(code);
                 if (result !== undefined) {
-                    outputDiv.textContent = result;
+                    outputDiv.textContent += result;
                 }
             } catch (error) {
-                outputDiv.textContent = error;
+                outputDiv.textContent += error;
             }
+        });
+
+        // Create new session and save it
+        function saveCurrentSession() {
+            const sessionName = sessionNameInput.value.trim() || new Date().toLocaleString();
+            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+            sessions[sessionName] = codeBox.value;
+            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+            currentSession = sessionName;
+            updateSessionsList();
+        }
+
+        // Load a session by its name
+        function loadSession(name) {
+            const sessions = JSON.parse(localStorage.getItem(sessionsKey));
+            if (sessions && sessions[name]) {
+                codeBox.value = sessions[name];
+                sessionNameInput.value = name;
+                currentSession = name;
+            }
+        }
+
+        // Update the sessions list UI
+        function updateSessionsList() {
+            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+            sessionsList.innerHTML = '';
+            Object.keys(sessions).forEach(name => {
+                const sessionItem = document.createElement('div');
+                sessionItem.textContent = name;
+                sessionItem.className = 'session-item';
+                sessionItem.onclick = () => loadSession(name);
+                sessionsList.appendChild(sessionItem);
+            });
+        }
+
+        // Load all sessions from localStorage and update the list
+        function loadSessions() {
+            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+            updateSessionsList();
+        }
+
+        // Copy the current code as a URL
+        document.getElementById('copy-url').addEventListener('click', function() {
+            const encodedCode = encodeURIComponent(codeBox.value);
+            const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
+            navigator.clipboard.writeText(url).then(() => {
+                alert('URL copied to clipboard!');
+            }).catch(err => {
+                console.error('Failed to copy URL: ', err);
+            });
         });
     </script>
 
