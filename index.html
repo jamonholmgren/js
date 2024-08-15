@@ -132,9 +132,11 @@
             const urlCode = urlParams.get('code');
             if (urlCode) {
                 codeBox.value = decodeURIComponent(urlCode);
-                sessionNameInput.value = 'Loaded from URL';
-                currentSession = 'Loaded from URL';
+                sessionNameInput.value = '';
+                currentSession = '';
                 currentSessionId = ''; // Reset the session ID since it's loaded from URL
+
+                window.history.replaceState({}, document.title, window.location.pathname);
             }
         });
 
