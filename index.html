@@ -60,7 +60,7 @@
         box-sizing: border-box;
         font-family: monospace;
         line-height: 1.5em;
-        white-space: nowrap;
+        white-space: pre;
       }
 
       .action-buttons button {
@@ -250,7 +250,6 @@
           autocapitalize="off"
           autocorrect="off"
           spellcheck="false"
-          inputmode="latin"
         ></textarea>
       </div>
       <div class="right-column">
@@ -314,7 +313,8 @@
         const urlParams = new URLSearchParams(window.location.search)
         const urlCode = urlParams.get("code")
         if (urlCode) {
-          codeBox.value = decodeURIComponent(urlCode)
+          const decodedCode = decodeURIComponent(urlCode)
+          codeBox.value = decodedCode
           sessionNameInput.value = ""
           currentSession = ""
           currentSessionId = "" // Reset the session ID since it's loaded from URL
@@ -337,7 +337,7 @@
         outputDiv.classList.remove("error")
         outputDiv.textContent = ""
 
-        const wrappedCode = `;(async () => {${code}})();`
+        const wrappedCode = `;(async () => {${code}})(); return undefined;`
         try {
           const result = eval(wrappedCode)
           if (result !== undefined) {
