@@ -207,7 +207,7 @@
         function updateSessionsList() {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             sessionsList.innerHTML = '';
-            Object.values(sessions).forEach(session => {
+            Object.values(sessions).reverse().forEach(session => {
                 const sessionItem = document.createElement('div');
                 sessionItem.className = 'session-item';
 
