@@ -81,6 +81,25 @@
             border-radius: 5px;
             cursor: pointer;
         }
+            
+        .session-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #e0e0e0;
+            padding: 10px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    
+        .session-item .delete-button {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #FF6347; /* Tomato color for the delete button */
+            font-size: 18px;
+        }
 
         #copy-url {
             margin-top: 10px;
@@ -178,17 +197,45 @@
             }
         }
 
-        // Update the sessions list UI
         function updateSessionsList() {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             sessionsList.innerHTML = '';
             Object.keys(sessions).forEach(name => {
                 const sessionItem = document.createElement('div');
-                sessionItem.textContent = name;
                 sessionItem.className = 'session-item';
-                sessionItem.onclick = () => loadSession(name);
+        
+                const sessionName = document.createElement('span');
+                sessionName.textContent = name;
+                sessionName.onclick = () => loadSession(name);
+                
+                const deleteButton = document.createElement('button');
+                deleteButton.className = 'delete-button';
+                deleteButton.innerHTML = '🗑'; // Trash can emoji or use a FontAwesome icon
+                deleteButton.onclick = (event) => {
+                    event.stopPropagation(); // Prevent triggering the session load
+                    if (confirm(`Are you sure you want to delete the session "${name}"?`)) {
+                        deleteSession(name);
+                    }
+                };
+        
+                sessionItem.appendChild(sessionName);
+                sessionItem.appendChild(deleteButton);
                 sessionsList.appendChild(sessionItem);
             });
+        }
+        
+        function deleteSession(name) {
+            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+            delete sessions[name];
+            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+            updateSessionsList();
+        
+            // If the deleted session is currently loaded, clear the inputs
+            if (currentSession === name) {
+                currentSession = '';
+                codeBox.value = '';
+                sessionNameInput.value = '';
+            }
         }
 
         // Load all sessions from localStorage and update the list
