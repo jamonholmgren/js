@@ -170,30 +170,42 @@
             }
         });
 
+        let currentSession = '';
+        let originalSessionName = ''; // Track the original session name
+        
         function saveCurrentSession() {
             let sessionName = sessionNameInput.value.trim();
+            
+            // If no session name is provided, use the current session name or generate a new one
             if (!sessionName) {
-                if (!currentSession) {
-                    sessionName = new Date().toLocaleString();
-                } else {
-                    sessionName = currentSession;
-                }
+                sessionName = currentSession || new Date().toLocaleString();
             }
             
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+        
+            // If the session name has changed, delete the old session
+            if (currentSession && currentSession !== sessionName) {
+                delete sessions[currentSession];
+            }
+        
+            // Save or update the session
             sessions[sessionName] = codeBox.value;
             localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+        
+            // Update the current and original session names
             currentSession = sessionName;
+            originalSessionName = sessionName;
+            
             updateSessionsList();
         }
-
-        // Load a session by its name
+        
         function loadSession(name) {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey));
             if (sessions && sessions[name]) {
                 codeBox.value = sessions[name];
                 sessionNameInput.value = name;
                 currentSession = name;
+                originalSessionName = name; // Set the original session name when loading
             }
         }
 
