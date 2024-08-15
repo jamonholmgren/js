@@ -60,7 +60,7 @@
         box-sizing: border-box;
         font-family: monospace;
         line-height: 1.5em;
-        white-space: pre-wrap;
+        white-space: nowrap;
       }
 
       .action-buttons button {
@@ -170,12 +170,7 @@
 
     <div class="container">
       <div class="left-column">
-        <input
-          id="session-name"
-          placeholder="Title"
-          autocapitalize="off"
-          autocorrect="off"
-        />
+        <input id="session-name" placeholder="Title" autocapitalize="off" autocorrect="off" />
         <textarea
           id="code-box"
           placeholder="Write your JavaScript code here..."
@@ -190,6 +185,7 @@
           <button id="run-button">Run Code</button>
           <button id="copy-url">Share</button>
           <button id="new">New</button>
+          <button id="pretty">Prettify</button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
@@ -197,283 +193,335 @@
     </div>
 
     <script>
-      let currentSession = "";
-      let currentSessionId = ""; // Track the session ID
-      const sessionsKey = "jsSessions"; // Don't change this unless you want to lose all saved sessions
-      const codeBox = document.getElementById("code-box");
-      const sessionNameInput = document.getElementById("session-name");
-      const sessionsList = document.getElementById("sessions-list");
-      const runButton = document.getElementById("run-button");
-      const copyUrlButton = document.getElementById("copy-url");
-      const newButton = document.getElementById("new");
-      const outputDiv = document.getElementById("output");
+      let currentSession = ""
+      let currentSessionId = "" // Track the session ID
+
+      const sessionsKey = "jsSessions" // Don't change this unless you want to lose all saved sessions
+      const codeBox = document.getElementById("code-box")
+      const sessionNameInput = document.getElementById("session-name")
+      const sessionsList = document.getElementById("sessions-list")
+      const runButton = document.getElementById("run-button")
+      const copyUrlButton = document.getElementById("copy-url")
+      const newButton = document.getElementById("new")
+      const prettyButton = document.getElementById("pretty")
+      const outputDiv = document.getElementById("output")
 
       document.addEventListener("DOMContentLoaded", function () {
         // Override console methods
-        ["log", "error", "warn", "info"].forEach(function (method) {
-          const originalMethod = console[method];
+        ;["log", "error", "warn", "info"].forEach(function (method) {
+          const originalMethod = console[method]
           console[method] = function (...args) {
-            outputDiv.textContent += args.join(" ") + "\n";
-            originalMethod.apply(console, args);
-          };
-        });
+            outputDiv.textContent += args.join(" ") + "\n"
+            originalMethod.apply(console, args)
+          }
+        })
 
         // Load all saved sessions on page load
-        loadSessions();
+        loadSessions()
 
         // check for shared or ID session in URL
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlCode = urlParams.get("code");
+        const urlParams = new URLSearchParams(window.location.search)
+        const urlCode = urlParams.get("code")
         if (urlCode) {
-          codeBox.value = decodeURIComponent(urlCode);
-          sessionNameInput.value = "";
-          currentSession = "";
-          currentSessionId = ""; // Reset the session ID since it's loaded from URL
+          codeBox.value = decodeURIComponent(urlCode)
+          sessionNameInput.value = ""
+          currentSession = ""
+          currentSessionId = "" // Reset the session ID since it's loaded from URL
 
-          window.history.replaceState(
-            {},
-            document.title,
-            window.location.pathname
-          );
+          window.history.replaceState({}, document.title, window.location.pathname)
         } else if (urlParams.has("id")) {
-          const id = urlParams.get("id");
-          loadSession(id);
+          const id = urlParams.get("id")
+          loadSession(id)
         }
-      });
+      })
 
       // Save the code and session name to localStorage on input
-      codeBox.addEventListener("input", saveCurrentSession);
-      sessionNameInput.addEventListener("input", saveCurrentSession);
+      codeBox.addEventListener("input", saveCurrentSession)
+      sessionNameInput.addEventListener("input", saveCurrentSession)
 
       runButton.addEventListener("click", function () {
-        runButton.classList.add("running");
+        runButton.classList.add("running")
 
-        const code = codeBox.value;
-        outputDiv.classList.remove("error");
-        outputDiv.textContent = "";
+        const code = codeBox.value
+        outputDiv.classList.remove("error")
+        outputDiv.textContent = ""
 
         try {
-          const result = eval(code);
+          const result = eval(code)
           if (result !== undefined) {
-            outputDiv.textContent += result;
+            outputDiv.textContent += result
           }
         } catch (error) {
-          outputDiv.textContent += error;
-          outputDiv.classList.add("error");
+          showError(error)
         }
 
-        setTimeout(() => runButton.classList.remove("running"), 1000);
-      });
+        setTimeout(() => runButton.classList.remove("running"), 1000)
+      })
 
       function saveCurrentSession() {
-        let sessionName = sessionNameInput.value.trim();
+        let sessionName = sessionNameInput.value.trim()
 
         // Generate a new session ID if it doesn't exist
         if (!currentSessionId) {
-          currentSessionId = new Date().getTime().toString();
+          currentSessionId = new Date().getTime().toString()
         }
 
         // Use the current session name if no name is provided
         if (!sessionName) {
-          sessionName = currentSession || new Date().toLocaleString();
+          sessionName = currentSession || new Date().toLocaleString()
         }
 
-        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {}
 
         // If the session ID already exists, update the session name and code
         sessions[currentSessionId] = {
           id: currentSessionId,
           name: sessionName,
           code: codeBox.value,
-        };
+        }
 
         // Save the updated sessions back to localStorage
-        localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+        localStorage.setItem(sessionsKey, JSON.stringify(sessions))
 
         // Update the current session info
-        currentSession = sessionName;
+        currentSession = sessionName
 
-        updateSessionsList();
+        updateSessionsList()
       }
 
       function loadSession(id) {
-        const sessions = JSON.parse(localStorage.getItem(sessionsKey));
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey))
         if (sessions && sessions[id]) {
-          codeBox.value = sessions[id].code;
-          sessionNameInput.value = sessions[id].name;
-          currentSession = sessions[id].name;
-          currentSessionId = sessions[id].id;
+          codeBox.value = sessions[id].code
+          sessionNameInput.value = sessions[id].name
+          currentSession = sessions[id].name
+          currentSessionId = sessions[id].id
         }
-        updateSessionsList();
+        updateSessionsList()
       }
 
       function updateURL() {
-        if (!currentSessionId) return;
+        if (!currentSessionId) return
 
         window.history.replaceState(
           {},
           document.title,
           `${window.location.pathname}?id=${currentSessionId}`
-        );
+        )
       }
 
       function updateSessionsList() {
-        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-        sessionsList.innerHTML = "";
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {}
+        sessionsList.innerHTML = ""
         Object.values(sessions)
           .reverse()
           .forEach((session) => {
-            const sessionItem = document.createElement("div");
-            sessionItem.className = "session-item";
-            sessionItem.dataset.id = session.id;
+            const sessionItem = document.createElement("div")
+            sessionItem.className = "session-item"
+            sessionItem.dataset.id = session.id
 
             if (session.id === currentSessionId) {
-              sessionItem.classList.add("active");
+              sessionItem.classList.add("active")
             }
 
-            const sessionName = document.createElement("span");
-            sessionName.textContent = session.name.slice(0, 22);
-            sessionItem.onclick = () => loadSession(session.id);
+            const sessionName = document.createElement("span")
+            sessionName.textContent = session.name.slice(0, 22)
+            sessionItem.onclick = () => loadSession(session.id)
 
-            const contentPreview = document.createElement("span");
-            contentPreview.classList.add("content-preview");
+            const contentPreview = document.createElement("span")
+            contentPreview.classList.add("content-preview")
             contentPreview.textContent = session.code
               .slice(0, 40)
               .split("\n")
-              .find((line) => line.trim() !== "");
-            sessionName.appendChild(contentPreview);
+              .find((line) => line.trim() !== "")
+            sessionName.appendChild(contentPreview)
 
-            const deleteButton = document.createElement("button");
-            deleteButton.className = "delete-button";
-            deleteButton.innerHTML = "🗑";
+            const deleteButton = document.createElement("button")
+            deleteButton.className = "delete-button"
+            deleteButton.innerHTML = "🗑"
             deleteButton.onclick = (event) => {
-              event.stopPropagation(); // Prevent triggering the session load
-              if (
-                confirm(
-                  `Are you sure you want to delete the session "${session.name}"?`
-                )
-              ) {
-                deleteSession(session.id);
+              event.stopPropagation() // Prevent triggering the session load
+              if (confirm(`Are you sure you want to delete the session "${session.name}"?`)) {
+                deleteSession(session.id)
               }
-            };
+            }
 
-            sessionItem.appendChild(sessionName);
-            sessionItem.appendChild(deleteButton);
-            sessionsList.appendChild(sessionItem);
-          });
-        updateURL();
+            sessionItem.appendChild(sessionName)
+            sessionItem.appendChild(deleteButton)
+            sessionsList.appendChild(sessionItem)
+          })
+        updateURL()
       }
 
       function deleteSession(id) {
-        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-        delete sessions[id];
-        localStorage.setItem(sessionsKey, JSON.stringify(sessions));
-        updateSessionsList();
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {}
+        delete sessions[id]
+        localStorage.setItem(sessionsKey, JSON.stringify(sessions))
+        updateSessionsList()
 
         // If the deleted session is currently loaded, clear the inputs
         if (currentSessionId === id) {
-          currentSession = "";
-          currentSessionId = "";
-          codeBox.value = "";
-          sessionNameInput.value = "";
+          currentSession = ""
+          currentSessionId = ""
+          codeBox.value = ""
+          sessionNameInput.value = ""
         }
       }
 
       // Load all sessions from localStorage and update the list
       function loadSessions() {
-        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-        updateSessionsList();
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {}
+        updateSessionsList()
       }
 
       // Copy the current code as a URL
-      copyUrlButton.addEventListener("click", function () {
-        let encodedCode = encodeURIComponent(codeBox.value);
+      copyUrlButton.addEventListener("click", copyUrl)
+
+      newButton.addEventListener("click", function () {
+        currentSession = ""
+        currentSessionId = ""
+        codeBox.value = ""
+        sessionNameInput.value = ""
+        updateSessionsList()
+      })
+
+      document.getElementById("code-box").addEventListener("keydown", function (e) {
+        const codeBox = this
+        const tabCharacter = "  " // Two spaces for indentation
+
+        if (e.key === "Tab" && !e.altKey && !e.ctrlKey && !e.metaKey) {
+          e.preventDefault()
+          const value = codeBox.value
+          let start = codeBox.selectionStart
+          let end = codeBox.selectionEnd
+
+          // Normalize line endings to \n
+          const normalizedValue = value.replace(/\r\n/g, "\n")
+          const beforeSelection = normalizedValue.slice(0, start)
+          const selectedText = normalizedValue.slice(start, end)
+          const afterSelection = normalizedValue.slice(end)
+
+          // Find the start and end of the affected lines
+          const lastNewLine = beforeSelection.lastIndexOf("\n")
+          const startLine = lastNewLine === -1 ? 0 : lastNewLine + 1
+          const endLine = normalizedValue.indexOf("\n", end)
+          const endLineAdjusted = endLine === -1 ? normalizedValue.length : endLine
+
+          // Split the affected text into lines
+          const affectedText = normalizedValue.slice(startLine, endLineAdjusted)
+          const lines = affectedText.split("\n")
+
+          let modifiedLines
+          if (e.shiftKey) {
+            // Deindent
+            modifiedLines = lines.map((line) =>
+              line.startsWith(tabCharacter) ? line.slice(tabCharacter.length) : line
+            )
+          } else {
+            // Indent
+            modifiedLines = lines.map((line) => tabCharacter + line)
+          }
+
+          // Join the lines back together
+          const modifiedText = modifiedLines.join("\n")
+
+          // Calculate new selection start and end
+          const startDiff = modifiedLines[0].length - lines[0].length
+          const totalDiff = modifiedText.length - affectedText.length
+
+          const newText =
+            normalizedValue.slice(0, startLine) +
+            modifiedText +
+            normalizedValue.slice(endLineAdjusted)
+          const newStart = start + startDiff
+          const newEnd = end + totalDiff
+
+          // Replace the text and set the new selection
+          replaceCode(newText, newStart, newEnd)
+
+          // Trigger input event to notify any listeners of the change
+          codeBox.dispatchEvent(new Event("input", { bubbles: true }))
+        }
+      })
+
+      // Prettify the code on clicking the pretty button
+      prettyButton.addEventListener("click", async function () {
+        if (typeof prettier === "undefined") {
+          // load prettier on-demand if it's not already loaded
+          const p1 = loadScript("https://unpkg.com/prettier@3.3.3/standalone.js")
+          const p2 = loadScript("https://unpkg.com/prettier@3.3.3/plugins/estree.js")
+          const p3 = loadScript("https://unpkg.com/prettier@3.3.3/plugins/typescript.js")
+          await Promise.allSettled([p1, p2, p3])
+        }
+
+        prettifyCode()
+      })
+
+      async function prettifyCode() {
+        const code = codeBox.value
+        try {
+          const formattedCode = await prettier.format(code, {
+            parser: "typescript",
+            plugins: prettierPlugins,
+          })
+          replaceCode(formattedCode)
+        } catch (error) {
+          showError("Failed to prettify code: \n\n" + error)
+        }
+      }
+
+      async function loadScript(src) {
+        return new Promise((resolve, reject) => {
+          const script = document.createElement("script")
+          script.src = src
+          script.onload = resolve
+          script.onerror = reject
+          document.head.appendChild(script)
+        })
+      }
+
+      function showError(error) {
+        outputDiv.classList.add("error")
+        outputDiv.textContent = error
+      }
+
+      function copyUrl() {
+        let encodedCode = encodeURIComponent(codeBox.value)
         // also convert parentheses to avoid URL encoding issues
-        encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29");
-        const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
+        encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29")
+        const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`
         navigator.clipboard
           .writeText(url)
           .then(() => {
             // temporarily change the button text to indicate success
-            const copyButton = document.getElementById("copy-url");
-            copyButton.textContent = "Copied!";
-            setTimeout(() => (copyButton.textContent = "Share"), 2000);
+            const copyButton = document.getElementById("copy-url")
+            copyButton.textContent = "Copied!"
+            setTimeout(() => (copyButton.textContent = "Share"), 2000)
           })
           .catch((err) => {
-            console.error("Failed to copy URL: ", err);
-            alert("Failed to copy URL, sorry! Check console for details.");
-          });
-      });
+            showError("Failed to copy URL:\n\n" + err)
+          })
+      }
 
-      newButton.addEventListener("click", function () {
-        currentSession = "";
-        currentSessionId = "";
-        codeBox.value = "";
-        sessionNameInput.value = "";
-        updateSessionsList();
-      });
+      function replaceCode(text, selectionStart, selectionEnd) {
+        const codeBox = document.getElementById("code-box")
+        codeBox.focus()
+        document.execCommand("selectAll", false, null)
+        document.execCommand("insertText", false, text)
 
-      document
-        .getElementById("code-box")
-        .addEventListener("keydown", function (e) {
-          const codeBox = this;
-          const tabCharacter = "    "; // You can use '\t' for a real tab character or spaces.
+        // Set the selection range after a short delay
+        setTimeout(() => {
+          codeBox.setSelectionRange(selectionStart, selectionEnd)
+        }, 0)
+      }
 
-          if (e.key === "Tab" && !e.altKey && !e.ctrlKey && !e.metaKey) {
-            e.preventDefault();
-            const start = codeBox.selectionStart;
-            const end = codeBox.selectionEnd;
-
-            // Get the start of the line for the cursor start position
-            const beforeSelection = codeBox.value.slice(0, start);
-            const afterSelection = codeBox.value.slice(end);
-            const selectedText = codeBox.value.slice(start, end);
-
-            const startLine = beforeSelection.lastIndexOf("\n") + 1;
-            const endLine = start + selectedText.lastIndexOf("\n") + 1;
-            const selectedLines = codeBox.value
-              .slice(startLine, endLine)
-              .split("\n");
-
-            if (e.shiftKey) {
-              // Deindent: Remove tabCharacter from each line
-              const modifiedLines = selectedLines.map((line) => {
-                return line.startsWith(tabCharacter)
-                  ? line.slice(tabCharacter.length)
-                  : line;
-              });
-              const modifiedText = modifiedLines.join("\n");
-              codeBox.value =
-                beforeSelection.slice(0, startLine) +
-                modifiedText +
-                afterSelection.slice(endLine);
-
-              // Adjust cursor position
-              const newStart =
-                start -
-                (selectedLines[0].startsWith(tabCharacter)
-                  ? tabCharacter.length
-                  : 0);
-              const newEnd = newStart + modifiedText.length;
-              codeBox.selectionStart = newStart;
-              codeBox.selectionEnd = newEnd;
-            } else {
-              // Indent: Add tabCharacter to each line
-              const modifiedLines = selectedLines.map(
-                (line) => tabCharacter + line
-              );
-              const modifiedText = modifiedLines.join("\n");
-              codeBox.value =
-                beforeSelection.slice(0, startLine) +
-                modifiedText +
-                afterSelection.slice(endLine);
-
-              // Adjust cursor position
-              codeBox.selectionStart = start + tabCharacter.length;
-              codeBox.selectionEnd = start + modifiedText.length;
-            }
-          }
-        });
+      // hijack cmd+s / ctrl+s to copy URL
+      document.addEventListener("keydown", function (e) {
+        if ((e.metaKey || e.ctrlKey) && e.key === "s") {
+          e.preventDefault()
+          copyUrl()
+        }
+      })
     </script>
   </body>
 </html>
