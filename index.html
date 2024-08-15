@@ -151,9 +151,16 @@
             }
         });
 
-        // Create new session and save it
         function saveCurrentSession() {
-            const sessionName = sessionNameInput.value.trim() || new Date().toLocaleString();
+            let sessionName = sessionNameInput.value.trim();
+            if (!sessionName) {
+                if (!currentSession) {
+                    sessionName = new Date().toLocaleString();
+                } else {
+                    sessionName = currentSession;
+                }
+            }
+            
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             sessions[sessionName] = codeBox.value;
             localStorage.setItem(sessionsKey, JSON.stringify(sessions));
