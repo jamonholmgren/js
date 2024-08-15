@@ -75,14 +75,6 @@
         }
 
         .session-item {
-            background-color: #e0e0e0;
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-            
-        .session-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -92,7 +84,7 @@
             border-radius: 5px;
             cursor: pointer;
         }
-    
+
         .session-item .delete-button {
             background: transparent;
             border: none;
@@ -125,6 +117,7 @@
 
     <script>
         let currentSession = '';
+        let currentSessionId = ''; // Track the session ID
         const sessionsKey = 'jsSessions';
         const codeBox = document.getElementById('code-box');
         const sessionNameInput = document.getElementById('session-name');
@@ -139,6 +132,7 @@
                 codeBox.value = decodeURIComponent(urlCode);
                 sessionNameInput.value = 'Loaded from URL';
                 currentSession = 'Loaded from URL';
+                currentSessionId = ''; // Reset the session ID since it's loaded from URL
             }
         });
 
@@ -169,10 +163,7 @@
                 outputDiv.textContent += error;
             }
         });
-        
-        let currentSession = '';
-        let currentSessionId = ''; // Track the session ID
-        
+
         function saveCurrentSession() {
             let sessionName = sessionNameInput.value.trim();
             
@@ -198,7 +189,7 @@
             currentSession = sessionName;
             updateSessionsList();
         }
-        
+
         function loadSession(id) {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey));
             if (sessions && sessions[id]) {
@@ -208,14 +199,14 @@
                 currentSessionId = sessions[id].id; // Set the current session ID
             }
         }
-        
+
         function updateSessionsList() {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             sessionsList.innerHTML = '';
             Object.values(sessions).forEach(session => {
                 const sessionItem = document.createElement('div');
                 sessionItem.className = 'session-item';
-        
+
                 const sessionName = document.createElement('span');
                 sessionName.textContent = session.name;
                 sessionName.onclick = () => loadSession(session.id);
@@ -229,19 +220,19 @@
                         deleteSession(session.id);
                     }
                 };
-        
+
                 sessionItem.appendChild(sessionName);
                 sessionItem.appendChild(deleteButton);
                 sessionsList.appendChild(sessionItem);
             });
         }
-        
+
         function deleteSession(id) {
             const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
             delete sessions[id];
             localStorage.setItem(sessionsKey, JSON.stringify(sessions));
             updateSessionsList();
-        
+
             // If the deleted session is currently loaded, clear the inputs
             if (currentSessionId === id) {
                 currentSession = '';
