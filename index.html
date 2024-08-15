@@ -20,7 +20,8 @@
         #code-box {
             width: 90%;
             max-width: 500px;
-            height: 150px;
+            height: auto;
+            min-height: 20em; /* Set minimum height for 20 lines */
             border: 1px solid #ccc;
             border-radius: 5px;
             padding: 10px;
@@ -28,6 +29,7 @@
             box-sizing: border-box;
             margin-bottom: 10px;
             font-family: monospace;
+            line-height: 1.5em; /* Adjust line height for readability */
         }
 
         #run-button {
@@ -57,11 +59,25 @@
 </head>
 <body>
 
-    <textarea id="code-box" placeholder="Write your JavaScript code here..."></textarea>
+    <textarea id="code-box" placeholder="Write your JavaScript code here..."
+              autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="latin"></textarea>
     <button id="run-button">Run Code</button>
     <div id="output"></div>
 
     <script>
+        // Load the saved code from localStorage on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            const savedCode = localStorage.getItem('jsCode');
+            if (savedCode) {
+                document.getElementById('code-box').value = savedCode;
+            }
+        });
+
+        // Save the code to localStorage whenever it changes
+        document.getElementById('code-box').addEventListener('input', function() {
+            localStorage.setItem('jsCode', this.value);
+        });
+
         document.getElementById('run-button').addEventListener('click', function() {
             const code = document.getElementById('code-box').value;
             const outputDiv = document.getElementById('output');
