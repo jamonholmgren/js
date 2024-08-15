@@ -163,6 +163,79 @@
           margin-top: 20px; /* Add some space between the two columns when stacked */
         }
       }
+
+      /* dark mode adjustments */
+      body.dark {
+        background-color: #121212;
+        color: #e0e0e0;
+      }
+
+      body.dark .container {
+        color: #e0e0e0;
+      }
+
+      body.dark #session-name {
+        background-color: #1e1e1e;
+        border: 1px solid #444;
+        color: #e0e0e0;
+      }
+
+      body.dark #code-box {
+        background-color: #1e1e1e;
+        border: 1px solid #444;
+        color: #e0e0e0;
+      }
+
+      body.dark .action-buttons button {
+        background-color: #444;
+        color: #e0e0e0;
+      }
+
+      body.dark #run-button {
+        background-color: #357a38; /* Darker green */
+      }
+
+      body.dark #copy-url {
+        background-color: #007399; /* Darker blue */
+      }
+
+      body.dark #output {
+        background-color: #1e1e1e;
+        color: #e0e0e0;
+        border: 1px solid #444;
+      }
+
+      body.dark .session-item {
+        background-color: #333;
+        color: #e0e0e0;
+        border: 1px solid #555;
+      }
+
+      body.dark .session-item .content-preview {
+        color: #999;
+      }
+
+      body.dark .session-item .delete-button {
+        color: #ff6666;
+      }
+
+      body.dark .running {
+        box-shadow: 0 0 15px rgba(53, 122, 56, 0.7);
+      }
+
+      body.dark .error {
+        outline: 2px solid #ff6666 !important;
+        color: #ff6666 !important;
+      }
+
+      body.dark .active {
+        background-color: #4682b4 !important; /* Darker pale turquoise */
+      }
+
+      body.dark a,
+      body.dark a:visited {
+        color: #e0e0e0;
+      }
     </style>
   </head>
   <body>
@@ -194,7 +267,8 @@
 
     <footer>
       <p>
-        my website:
+        <a href="" onclick="toggleDarkMode(); return false;">mode: light</a>
+        • my website:
         <a href="https://jamon.dev" target="_blank">jamon.dev</a>
         • my company:
         <a href="https://infinite.red" target="_blank">infinite.red</a>
@@ -218,16 +292,20 @@
       const newButton = document.getElementById("new")
       const prettyButton = document.getElementById("pretty")
       const outputDiv = document.getElementById("output")
+      const darkModeButton = document.querySelector("footer a")
 
       document.addEventListener("DOMContentLoaded", function () {
+        applyDarkMode()
+
         // Override console methods
-        ;["log", "error", "warn", "info"].forEach(function (method) {
-          const originalMethod = console[method]
-          console[method] = function (...args) {
-            outputDiv.textContent += args.join(" ") + "\n"
-            originalMethod.apply(console, args)
-          }
-        })
+        ;(() =>
+          ["log", "error", "warn", "info"].forEach(function (method) {
+            const originalMethod = console[method]
+            console[method] = function (...args) {
+              outputDiv.textContent += args.join(" ") + "\n"
+              originalMethod.apply(console, args)
+            }
+          }))()
 
         // Load all saved sessions on page load
         loadSessions()
@@ -309,6 +387,7 @@
           sessionNameInput.value = sessions[id].name
           currentSession = sessions[id].name
           currentSessionId = sessions[id].id
+          outputDiv.textContent = "// run to see output"
         }
         updateSessionsList()
       }
@@ -535,6 +614,28 @@
           copyUrl()
         }
       })
+
+      function mode() {
+        return localStorage.getItem("mode")
+      }
+
+      function otherMode() {
+        return mode() === "dark" ? "light" : "dark"
+      }
+
+      function toggleDarkMode() {
+        localStorage.setItem("mode", otherMode())
+        applyDarkMode()
+      }
+
+      function applyDarkMode() {
+        if (mode() === "dark") {
+          document.body.classList.add("dark")
+        } else {
+          document.body.classList.remove("dark")
+        }
+        darkModeButton.textContent = "mode: " + mode()
+      }
     </script>
   </body>
 </html>
