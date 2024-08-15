@@ -1,298 +1,374 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Jamon's JS Playground</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            justify-content: center;
-            align-items: flex-start;
-            min-height: 100vh;
-            background-color: #f0f0f0;
-            text-align: center;
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        background-color: #f0f0f0;
+        text-align: center;
+      }
+
+      .container {
+        text-align: left;
+        display: flex;
+        flex-direction: row; /* Default layout: side-by-side */
+        width: 90%;
+        max-width: 1200px;
+        margin: 20px auto;
+        gap: 20px;
+      }
+
+      .left-column {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .right-column {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      #session-name {
+        width: 100%;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 16px;
+        box-sizing: border-box;
+      }
+
+      #code-box {
+        width: 100%;
+        height: auto;
+        min-height: 30em;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        font-size: 16px;
+        box-sizing: border-box;
+        font-family: monospace;
+        line-height: 1.5em;
+      }
+
+      .action-buttons button {
+        flex: 1;
+        padding: 10px;
+        font-size: 18px;
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .running {
+        animation: pulse 1s infinite;
+        box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+          box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
         }
-        
+        50% {
+          transform: scale(1.05);
+          box-shadow: 0 0 25px rgba(76, 175, 80, 0.7);
+        }
+        100% {
+          transform: scale(1);
+          box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+        }
+      }
+
+      #output {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        padding: 10px;
+        box-sizing: border-box;
+        white-space: pre-wrap;
+        font-family: monospace;
+      }
+
+      #sessions-list {
+        margin-top: 10px;
+      }
+
+      .session-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: #e0e0e0;
+        padding: 10px;
+        margin-bottom: 5px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .session-item .delete-button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #ff6347;
+        font-size: 18px;
+      }
+
+      #copy-url {
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #008cba;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+
+      .error {
+        background-color: #ffcccc !important;
+      }
+
+      .active {
+        background-color: #b0e0e6 !important;
+      }
+
+      /* Media query to stack the layout vertically on mobile screens */
+      @media (max-width: 768px) {
         .container {
-            text-align: left;
-            display: flex;
-            flex-direction: row; /* Default layout: side-by-side */
-            width: 90%;
-            max-width: 1200px;
-            margin: 20px;
-            gap: 20px;
+          flex-direction: column; /* Stack vertically */
         }
-        
-        .left-column {
-            flex: 2;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
+
         .right-column {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+          margin-top: 20px; /* Add some space between the two columns when stacked */
         }
-        
-        #session-name {
-            width: 100%;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 16px;
-            box-sizing: border-box;
-        }
-        
-        #code-box {
-            width: 100%;
-            height: auto;
-            min-height: 30em;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            font-size: 16px;
-            box-sizing: border-box;
-            font-family: monospace;
-            line-height: 1.5em;
-        }
-        
-        #run-button {
-            width: 100%;
-            padding: 10px;
-            font-size: 18px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        #output {
-            background-color: #fff;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            padding: 10px;
-            box-sizing: border-box;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        
-        #sessions-list {
-            margin-top: 10px;
-        }
-        
-        .session-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #e0e0e0;
-            padding: 10px;
-            margin-bottom: 5px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        .session-item .delete-button {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            color: #FF6347;
-            font-size: 18px;
-        }
-        
-        #copy-url {
-            margin-top: 10px;
-            padding: 10px;
-            background-color: #008CBA;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        
-        /* Media query to stack the layout vertically on mobile screens */
-        @media (max-width: 768px) {
-            .container {
-                flex-direction: column; /* Stack vertically */
-            }
-        
-            .right-column {
-                margin-top: 20px; /* Add some space between the two columns when stacked */
-            }
-        }
-
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Jamon's JS Playground</h1>
 
     <div class="container">
-        <div class="left-column">
-            <input id="session-name" placeholder="Session Name (default is date/time)" autocapitalize="off" autocorrect="off">
-            <textarea id="code-box" placeholder="Write your JavaScript code here..."
-                      autocapitalize="off" autocorrect="off" spellcheck="false" inputmode="latin"></textarea>
-            <button id="run-button">Run Code</button>
+      <div class="left-column">
+        <input
+          id="session-name"
+          placeholder="Title"
+          autocapitalize="off"
+          autocorrect="off"
+        />
+        <textarea
+          id="code-box"
+          placeholder="Write your JavaScript code here..."
+          autocapitalize="off"
+          autocorrect="off"
+          spellcheck="false"
+          inputmode="latin"
+        ></textarea>
+      </div>
+      <div class="right-column">
+        <div class="action-buttons">
+          <button id="run-button">Run Code</button>
+          <button id="copy-url">Share</button>
         </div>
-        <div class="right-column">
-            <button id="copy-url">Copy as URL</button>
-            <div id="output"></div>
-            <div id="sessions-list"></div>
-        </div>
+        <div id="output"></div>
+        <div id="sessions-list"></div>
+      </div>
     </div>
 
     <script>
-        let currentSession = '';
-        let currentSessionId = ''; // Track the session ID
-        const sessionsKey = 'jsSessions';
-        const codeBox = document.getElementById('code-box');
-        const sessionNameInput = document.getElementById('session-name');
-        const sessionsList = document.getElementById('sessions-list');
+      let currentSession = "";
+      let currentSessionId = ""; // Track the session ID
+      const sessionsKey = "jsSessions"; // Don't change this unless you want to lose all saved sessions
+      const codeBox = document.getElementById("code-box");
+      const sessionNameInput = document.getElementById("session-name");
+      const sessionsList = document.getElementById("sessions-list");
+      const runButton = document.getElementById("run-button");
 
-        // Load all saved sessions on page load
-        document.addEventListener('DOMContentLoaded', function() {
-            loadSessions();
-            const urlParams = new URLSearchParams(window.location.search);
-            const urlCode = urlParams.get('code');
-            if (urlCode) {
-                codeBox.value = decodeURIComponent(urlCode);
-                sessionNameInput.value = '';
-                currentSession = '';
-                currentSessionId = ''; // Reset the session ID since it's loaded from URL
+      // Load all saved sessions on page load
+      document.addEventListener("DOMContentLoaded", function () {
+        loadSessions();
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlCode = urlParams.get("code");
+        if (urlCode) {
+          codeBox.value = decodeURIComponent(urlCode);
+          sessionNameInput.value = "";
+          currentSession = "";
+          currentSessionId = ""; // Reset the session ID since it's loaded from URL
 
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
+          window.history.replaceState(
+            {},
+            document.title,
+            window.location.pathname
+          );
+        }
+      });
+
+      // Save the code and session name to localStorage on input
+      codeBox.addEventListener("input", saveCurrentSession);
+      sessionNameInput.addEventListener("input", saveCurrentSession);
+
+      runButton.addEventListener("click", function () {
+        runButton.classList.add("running");
+
+        const code = codeBox.value;
+        const outputDiv = document.getElementById("output");
+        outputDiv.classList.remove("error");
+        outputDiv.textContent = "";
+
+        // Override console methods
+        ["log", "error", "warn", "info"].forEach(function (method) {
+          const originalMethod = console[method];
+          console[method] = function (...args) {
+            outputDiv.textContent += args.join(" ") + "\n";
+            originalMethod.apply(console, args);
+          };
         });
 
-        // Save the code and session name to localStorage on input
-        codeBox.addEventListener('input', saveCurrentSession);
-        sessionNameInput.addEventListener('input', saveCurrentSession);
-
-        document.getElementById('run-button').addEventListener('click', function() {
-            const code = codeBox.value;
-            const outputDiv = document.getElementById('output');
-            outputDiv.textContent = '';
-
-            // Override console methods
-            ['log', 'error', 'warn', 'info'].forEach(function(method) {
-                const originalMethod = console[method];
-                console[method] = function(...args) {
-                    outputDiv.textContent += args.join(' ') + '\n';
-                    originalMethod.apply(console, args);
-                };
-            });
-
-            try {
-                const result = eval(code);
-                if (result !== undefined) {
-                    outputDiv.textContent += result;
-                }
-            } catch (error) {
-                outputDiv.textContent += error;
-            }
-        });
-
-        function saveCurrentSession() {
-            let sessionName = sessionNameInput.value.trim();
-            
-            // Generate a new session ID if it doesn't exist
-            if (!currentSessionId) {
-                currentSessionId = new Date().getTime().toString();
-            }
-            
-            // Use the current session name if no name is provided
-            if (!sessionName) {
-                sessionName = currentSession || new Date().toLocaleString();
-            }
-            
-            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-        
-            // If the session ID already exists, update the session name and code
-            sessions[currentSessionId] = { id: currentSessionId, name: sessionName, code: codeBox.value };
-            
-            // Save the updated sessions back to localStorage
-            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
-            
-            // Update the current session info
-            currentSession = sessionName;
-            updateSessionsList();
+        try {
+          const result = eval(code);
+          if (result !== undefined) {
+            outputDiv.textContent += result;
+          }
+        } catch (error) {
+          outputDiv.textContent += error;
+          outputDiv.classList.add("error");
         }
 
-        function loadSession(id) {
-            const sessions = JSON.parse(localStorage.getItem(sessionsKey));
-            if (sessions && sessions[id]) {
-                codeBox.value = sessions[id].code;
-                sessionNameInput.value = sessions[id].name;
-                currentSession = sessions[id].name;
-                currentSessionId = sessions[id].id; // Set the current session ID
+        setTimeout(() => runButton.classList.remove("running"), 1000);
+      });
+
+      function saveCurrentSession() {
+        let sessionName = sessionNameInput.value.trim();
+
+        // Generate a new session ID if it doesn't exist
+        if (!currentSessionId) {
+          currentSessionId = new Date().getTime().toString();
+        }
+
+        // Use the current session name if no name is provided
+        if (!sessionName) {
+          sessionName = currentSession || new Date().toLocaleString();
+        }
+
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+
+        // If the session ID already exists, update the session name and code
+        sessions[currentSessionId] = {
+          id: currentSessionId,
+          name: sessionName,
+          code: codeBox.value,
+        };
+
+        // Save the updated sessions back to localStorage
+        localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+
+        // Update the current session info
+        currentSession = sessionName;
+        updateSessionsList();
+      }
+
+      function loadSession(id) {
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey));
+        if (sessions && sessions[id]) {
+          codeBox.value = sessions[id].code;
+          sessionNameInput.value = sessions[id].name;
+          currentSession = sessions[id].name;
+          currentSessionId = sessions[id].id;
+        }
+        updateSessionsList();
+      }
+
+      function updateSessionsList() {
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+        sessionsList.innerHTML = "";
+        Object.values(sessions)
+          .reverse()
+          .forEach((session) => {
+            const sessionItem = document.createElement("div");
+            sessionItem.className = "session-item";
+            sessionItem.dataset.id = session.id;
+
+            if (session.id === currentSessionId) {
+              sessionItem.classList.add("active");
             }
+
+            const sessionName = document.createElement("span");
+            sessionName.textContent = session.name;
+            sessionItem.onclick = () => loadSession(session.id);
+
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "delete-button";
+            deleteButton.innerHTML = "🗑";
+            deleteButton.onclick = (event) => {
+              event.stopPropagation(); // Prevent triggering the session load
+              if (
+                confirm(
+                  `Are you sure you want to delete the session "${session.name}"?`
+                )
+              ) {
+                deleteSession(session.id);
+              }
+            };
+
+            sessionItem.appendChild(sessionName);
+            sessionItem.appendChild(deleteButton);
+            sessionsList.appendChild(sessionItem);
+          });
+      }
+
+      function deleteSession(id) {
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+        delete sessions[id];
+        localStorage.setItem(sessionsKey, JSON.stringify(sessions));
+        updateSessionsList();
+
+        // If the deleted session is currently loaded, clear the inputs
+        if (currentSessionId === id) {
+          currentSession = "";
+          currentSessionId = "";
+          codeBox.value = "";
+          sessionNameInput.value = "";
         }
+      }
 
-        function updateSessionsList() {
-            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-            sessionsList.innerHTML = '';
-            Object.values(sessions).reverse().forEach(session => {
-                const sessionItem = document.createElement('div');
-                sessionItem.className = 'session-item';
+      // Load all sessions from localStorage and update the list
+      function loadSessions() {
+        const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
+        updateSessionsList();
+      }
 
-                const sessionName = document.createElement('span');
-                sessionName.textContent = session.name;
-                sessionName.onclick = () => loadSession(session.id);
-                
-                const deleteButton = document.createElement('button');
-                deleteButton.className = 'delete-button';
-                deleteButton.innerHTML = '🗑';
-                deleteButton.onclick = (event) => {
-                    event.stopPropagation(); // Prevent triggering the session load
-                    if (confirm(`Are you sure you want to delete the session "${session.name}"?`)) {
-                        deleteSession(session.id);
-                    }
-                };
-
-                sessionItem.appendChild(sessionName);
-                sessionItem.appendChild(deleteButton);
-                sessionsList.appendChild(sessionItem);
-            });
-        }
-
-        function deleteSession(id) {
-            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-            delete sessions[id];
-            localStorage.setItem(sessionsKey, JSON.stringify(sessions));
-            updateSessionsList();
-
-            // If the deleted session is currently loaded, clear the inputs
-            if (currentSessionId === id) {
-                currentSession = '';
-                currentSessionId = '';
-                codeBox.value = '';
-                sessionNameInput.value = '';
-            }
-        }
-
-        // Load all sessions from localStorage and update the list
-        function loadSessions() {
-            const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {};
-            updateSessionsList();
-        }
-
-        // Copy the current code as a URL
-        document.getElementById('copy-url').addEventListener('click', function() {
-            const encodedCode = encodeURIComponent(codeBox.value);
-            const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
-            navigator.clipboard.writeText(url).then(() => {
-                alert('URL copied to clipboard!');
-            }).catch(err => {
-                console.error('Failed to copy URL: ', err);
+      // Copy the current code as a URL
+      document
+        .getElementById("copy-url")
+        .addEventListener("click", function () {
+          let encodedCode = encodeURIComponent(codeBox.value);
+          // also convert parentheses to avoid URL encoding issues
+          encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29");
+          const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`;
+          navigator.clipboard
+            .writeText(url)
+            .then(() => {
+              // temporarily change the button text to indicate success
+              const copyButton = document.getElementById("copy-url");
+              copyButton.textContent = "Copied!";
+              setTimeout(() => (copyButton.textContent = "Share"), 2000);
+            })
+            .catch((err) => {
+              console.error("Failed to copy URL: ", err);
+              alert("Failed to copy URL, sorry! Check console for details.");
             });
         });
     </script>
-
-</body>
+  </body>
 </html>
