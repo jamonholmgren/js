@@ -65,6 +65,16 @@
     <div id="output"></div>
 
     <script>
+        // Override console methods to capture and display their output
+        ['log', 'error', 'warn', 'info'].forEach(function(method) {
+            const originalMethod = console[method];
+            console[method] = function(...args) {
+                const outputDiv = document.getElementById('output');
+                outputDiv.textContent += args.join(' ') + '\n';
+                originalMethod.apply(console, args);
+            };
+        });
+    
         // Load the saved code from localStorage on page load
         document.addEventListener('DOMContentLoaded', function() {
             const savedCode = localStorage.getItem('jsCode');
@@ -82,13 +92,6 @@
             const code = document.getElementById('code-box').value;
             const outputDiv = document.getElementById('output');
             outputDiv.textContent = '';
-            
-            // Temporarily override console.log to capture and display logs
-            const clog = console.log
-            console.log = function(message) {
-                const outputDiv = document.getElementById('output');
-                outputDiv.textContent += message + '\n';
-            };
 
             try {
                 const result = eval(code);
@@ -98,8 +101,6 @@
             } catch (error) {
                 outputDiv.textContent = error;
             }
-            
-            console.log = clog
         });
     </script>
 
