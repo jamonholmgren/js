@@ -314,7 +314,7 @@
         const urlParams = new URLSearchParams(window.location.search)
         const urlCode = urlParams.get("code")
         if (urlCode) {
-          codeBox.value = decodeURIComponent(urlCode)
+          codeBox.value = normalizeNewlines(decodeURIComponent(urlCode))
           sessionNameInput.value = ""
           currentSession = ""
           currentSessionId = "" // Reset the session ID since it's loaded from URL
@@ -384,7 +384,7 @@
       function loadSession(id) {
         const sessions = JSON.parse(localStorage.getItem(sessionsKey))
         if (sessions && sessions[id]) {
-          codeBox.value = sessions[id].code
+          codeBox.value = normalizeNewlines(sessions[id].code)
           sessionNameInput.value = sessions[id].name
           currentSession = sessions[id].name
           currentSessionId = sessions[id].id
@@ -465,6 +465,13 @@
       function loadSessions() {
         const sessions = JSON.parse(localStorage.getItem(sessionsKey)) || {}
         updateSessionsList()
+      }
+
+      function normalizeNewlines(code) {
+        // First, normalize to \n (in case there are any \r\n)
+        code = code.replace(/\r\n/g, "\n")
+        // Then, replace any remaining \r with \n
+        return code.replace(/\r/g, "\n")
       }
 
       // Copy the current code as a URL
