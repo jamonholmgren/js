@@ -357,12 +357,9 @@
         outputDiv.classList.remove("error")
         outputDiv.textContent = ""
 
-        const wrappedCode = `;(async () => {${code}})(); return undefined;`
+        const wrappedCode = `;(async () => {${code}})();`
         try {
-          const result = eval(wrappedCode)
-          if (result !== undefined) {
-            outputDiv.textContent += result
-          }
+          eval(wrappedCode)
         } catch (error) {
           showError(error)
         }
