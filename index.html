@@ -266,10 +266,10 @@
       </div>
       <div class="right-column">
         <div class="action-buttons">
-          <button id="run-button">Run Code</button>
+          <button id="run-button">Run</button>
+          <button id="pretty">Prettify</button>
           <button id="copy-url">Share</button>
           <button id="new">New</button>
-          <button id="pretty">Prettify</button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
@@ -406,13 +406,9 @@
       }
 
       function updateURL() {
-        if (!currentSessionId) return
+        const suffix = currentSessionId ? `?id=${currentSessionId}` : ""
 
-        window.history.replaceState(
-          {},
-          document.title,
-          `${window.location.pathname}?id=${currentSessionId}`
-        )
+        window.history.replaceState({}, document.title, `${window.location.pathname}${suffix}`)
       }
 
       function updateSessionsList() {
@@ -487,6 +483,7 @@
         currentSessionId = ""
         codeBox.value = ""
         sessionNameInput.value = ""
+
         updateSessionsList()
       })
 
