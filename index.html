@@ -274,10 +274,10 @@
       </div>
       <div class="right-column">
         <div class="action-buttons">
-          <button id="run-button">Run</button>
-          <button id="pretty">Prettify</button>
-          <button id="copy-url">Share</button>
-          <button id="new">New</button>
+          <button id="run-button">▶️ Run</button>
+          <button id="pretty">💙 Prettify</button>
+          <button id="copy-url">⬆️ Share</button>
+          <button id="new">➕ New</button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
@@ -604,8 +604,9 @@
           .writeText(url)
           .then(() => {
             // temporarily change the button text to indicate success
-            copyUrlButton.textContent = "Copied!"
-            setTimeout(() => (copyUrlButton.textContent = "Share"), 2000)
+            const prevText = copyUrlButton.textContent
+            copyUrlButton.textContent = "✅ Share"
+            setTimeout(() => (copyUrlButton.textContent = prevText), 2000)
           })
           .catch((err) => {
             showError("Failed to copy URL:\n\n" + err)
