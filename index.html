@@ -17,6 +17,13 @@
         align-items: flex-start;
         min-height: 100vh;
         background-color: #f0f0f0;
+        position: relative;
+      }
+
+      header,
+      footer {
+        display: flex;
+        justify-content: center;
         text-align: center;
       }
 
@@ -24,8 +31,6 @@
         font-family: "Lato", sans-serif;
         font-weight: 400;
         font-size: 2.5rem;
-        margin-top: 0;
-        padding-top: 20px;
       }
 
       .container {
@@ -259,7 +264,9 @@
     </style>
   </head>
   <body>
-    <h1>Jamon's JS Playground</h1>
+    <header>
+      <h1>Jamon's JS Playground</h1>
+    </header>
 
     <div class="container">
       <div class="left-column">
@@ -318,14 +325,25 @@
         applyDarkMode()
 
         // Override console methods
-        ;(() =>
-          ["log", "error", "warn", "info"].forEach(function (method) {
+        ;(() => {
+          ;["log", "error", "warn", "info"].forEach(function (method) {
             const originalMethod = console[method]
             console[method] = function (...args) {
               outputDiv.textContent += args.join(" ") + "\n"
               originalMethod.apply(console, args)
             }
-          }))()
+          })
+
+          const oldAssert = console.assert
+          console.assert = (condition, message) => {
+            if (!condition) {
+              console.error(message)
+              throw new Error(message)
+            }
+
+            oldAssert.apply(console, [condition, message])
+          }
+        })()
 
         // check for shared or ID session in URL
         const urlParams = new URLSearchParams(window.location.search)
@@ -355,7 +373,13 @@
         outputDiv.classList.remove("error")
         outputDiv.textContent = ""
 
-        const wrappedCode = `;(async () => {${code}})();`
+        const wrappedCode = `;(async () => {
+          try{
+            ${code}
+          } catch(e) {
+            showError(e)
+          }
+        })();`
         try {
           eval(wrappedCode)
         } catch (error) {
