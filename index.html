@@ -596,9 +596,8 @@
           .writeText(url)
           .then(() => {
             // temporarily change the button text to indicate success
-            const copyButton = document.getElementById("copy-url")
-            copyButton.textContent = "Copied!"
-            setTimeout(() => (copyButton.textContent = "Share"), 2000)
+            copyUrlButton.textContent = "Copied!"
+            setTimeout(() => (copyUrlButton.textContent = "Share"), 2000)
           })
           .catch((err) => {
             showError("Failed to copy URL:\n\n" + err)
