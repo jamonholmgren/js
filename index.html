@@ -366,28 +366,118 @@
       codeBox.addEventListener("input", saveCurrentSession)
       sessionNameInput.addEventListener("input", saveCurrentSession)
 
-      runButton.addEventListener("click", function () {
+      function parseImports(code) {
+        const importRegex = /\/\/\s*@import\s+([^/\s]+(?:\/[^/\s]+)*\.js)/g
+        const imports = []
+        let match
+        while ((match = importRegex.exec(code)) !== null) {
+          imports.push(match[1])
+        }
+        return imports
+      }
+
+      function sanitizeImportPath(path) {
+        // Remove any leading '/' or '..' to prevent directory traversal
+        return path.replace(/^[./]+/, "").replace(/\.\./g, "")
+      }
+
+      // Add this function to create and return a new iframe
+      function createSandbox() {
+        return new Promise((resolve) => {
+          const iframe = document.createElement("iframe")
+          iframe.style.display = "none"
+          iframe.onload = () => {
+            setupSandbox(iframe)
+            resolve(iframe)
+          }
+          document.body.appendChild(iframe)
+        })
+      }
+
+      // Modify the loadImports function to load imports into the iframe
+      async function loadImports(imports, iframe) {
+        const win = iframe.contentWindow
+        const doc = iframe.contentDocument
+
+        for (const path of imports) {
+          const sanitizedPath = sanitizeImportPath(path)
+          const url = `https://unpkg.com/${sanitizedPath}`
+          await new Promise((resolve, reject) => {
+            const script = doc.createElement("script")
+            script.src = url
+            script.onload = resolve
+            script.onerror = reject
+            doc.head.appendChild(script)
+          })
+        }
+      }
+
+      // Modify the runButton event listener
+      runButton.addEventListener("click", async function () {
         runButton.classList.add("running")
 
         const code = codeBox.value
         outputDiv.classList.remove("error")
         outputDiv.textContent = ""
 
-        const wrappedCode = `;(async () => {
-          try{
-            ${code}
-          } catch(e) {
-            showError(e)
-          }
-        })();`
+        const imports = parseImports(code)
+
         try {
-          eval(wrappedCode)
+          // Create a new sandbox for this run
+          const sandbox = await createSandbox()
+
+          await loadImports(imports, sandbox)
+
+          const wrappedCode = `;(async () => {
+            try{
+              ${code}
+            } catch(e) {
+              parent.showError(e);
+            }
+          })();`
+
+          // Run the code in the sandbox
+          sandbox.contentWindow.eval(wrappedCode)
         } catch (error) {
           showError(error)
+        } finally {
+          // Remove the sandbox after execution
+          setTimeout(() => {
+            const sandbox = document.querySelector("iframe")
+            if (sandbox) document.body.removeChild(sandbox)
+            runButton.classList.remove("running")
+          }, 1000)
         }
-
-        setTimeout(() => runButton.classList.remove("running"), 1000)
       })
+
+      // Modify the showError function to work with the iframe
+      function showError(error) {
+        outputDiv.classList.add("error")
+        outputDiv.textContent = error.toString()
+      }
+
+      // Modify console overrides to work with the iframe
+      function overrideConsole(win) {
+        ;["log", "error", "warn", "info"].forEach(function (method) {
+          win.console[method] = function (...args) {
+            outputDiv.textContent += args.join(" ") + "\n"
+            console[method].apply(console, args)
+          }
+        })
+
+        win.console.assert = (condition, message) => {
+          if (!condition) {
+            win.console.error(message)
+            throw new Error(message)
+          }
+        }
+      }
+
+      // Call this function when creating the sandbox
+      function setupSandbox(iframe) {
+        overrideConsole(iframe.contentWindow)
+        iframe.contentWindow.showError = showError
+      }
 
       function getSessions() {
         return JSON.parse(localStorage.getItem(sessionsKey)) || {}
@@ -437,6 +527,16 @@
           currentSessionId = sessions[id].id
           outputDiv.textContent = "// run to see output"
         }
+
+        // Clear any existing output
+        outputDiv.textContent = "// run to see output"
+
+        // If there's an existing sandbox, remove it
+        const existingSandbox = document.querySelector("iframe")
+        if (existingSandbox) {
+          document.body.removeChild(existingSandbox)
+        }
+
         updateSessionsList()
         updateURL()
       }
