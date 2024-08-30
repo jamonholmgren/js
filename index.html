@@ -330,7 +330,6 @@
             const originalMethod = console[method]
             console[method] = function (...args) {
               outputDiv.textContent += args.join(" ") + "\n"
-              originalMethod.apply(console, args)
             }
           })
 
@@ -461,7 +460,6 @@
         ;["log", "error", "warn", "info"].forEach(function (method) {
           win.console[method] = function (...args) {
             outputDiv.textContent += args.join(" ") + "\n"
-            console[method].apply(console, args)
           }
         })
 
