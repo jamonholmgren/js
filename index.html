@@ -9,6 +9,10 @@
       rel="stylesheet"
     />
     <style>
+      * {
+        box-sizing: border-box;
+      }
+
       body {
         font-family: sans-serif;
         margin: 0;
@@ -16,8 +20,24 @@
         justify-content: center;
         align-items: flex-start;
         min-height: 100vh;
-        background-color: #f0f0f0;
+        /* Liquid glass gradient background */
+        background: linear-gradient(135deg, #b6e0fe 0%, #e0c3fc 100%);
         position: relative;
+        /* Add a subtle animated gradient for extra depth */
+        background-size: 400% 400%;
+        animation: glass-bg-move 20s ease-in-out infinite;
+      }
+
+      @keyframes glass-bg-move {
+        0% {
+          background-position: 0% 50%;
+        }
+        50% {
+          background-position: 100% 50%;
+        }
+        100% {
+          background-position: 0% 50%;
+        }
       }
 
       header,
@@ -36,230 +56,298 @@
       .container {
         text-align: left;
         display: flex;
-        flex-direction: row; /* Default layout: side-by-side */
-        width: 90%;
-        max-width: 1200px;
+        flex-direction: row;
+        width: 98vw;
+        max-width: none;
         margin: 20px auto;
         gap: 20px;
+        /* Glassmorphism */
+        background: rgba(255, 255, 255, 0.25);
+        border-radius: 32px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.18);
+        backdrop-filter: blur(24px) saturate(180%);
+        -webkit-backdrop-filter: blur(24px) saturate(180%);
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
       }
 
       .left-column {
-        flex: 2;
+        flex: 3;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 24px;
+        box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(16px) saturate(160%);
+        -webkit-backdrop-filter: blur(16px) saturate(160%);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        padding: 24px 18px;
+        min-width: 0;
       }
-
       .right-column {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 10px;
+        gap: 16px;
+        background: rgba(255, 255, 255, 0.18);
+        border-radius: 24px;
+        box-shadow: 0 4px 24px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(16px) saturate(160%);
+        -webkit-backdrop-filter: blur(16px) saturate(160%);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        padding: 24px 18px;
+        min-width: 260px;
+        width: 100%;
+      }
+
+      #session-name,
+      #code-box,
+      #output {
+        background: rgba(255, 255, 255, 0.32);
+        border-radius: 18px;
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(12px) saturate(160%);
+        -webkit-backdrop-filter: blur(12px) saturate(160%);
+        color: #222;
       }
 
       #session-name {
-        width: 100%;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
-        font-size: 16px;
-        box-sizing: border-box;
+        font-size: 18px;
+        padding: 12px;
       }
 
       #code-box {
-        width: 100%;
-        height: auto;
         min-height: 30em;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
         font-size: 16px;
-        box-sizing: border-box;
         font-family: monospace;
         line-height: 1.5em;
         white-space: pre;
+        padding: 14px;
+        resize: vertical;
       }
 
+      #output {
+        min-height: 10em;
+        font-family: monospace;
+        font-size: 15px;
+        padding: 14px;
+        color: #222;
+      }
+
+      .action-buttons {
+        display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
+        width: 100%;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
       .action-buttons button {
-        flex: 1;
-        padding: 10px;
-        font-size: 18px;
-        /* pleasant dark grayish color */
-        background-color: #333;
-        color: white;
+        flex: 1 1 0;
+        min-width: 0;
+        padding: 6px 0;
+        font-size: 14px;
         border: none;
-        border-radius: 5px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.22);
+        color: #222;
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(8px) saturate(140%);
+        -webkit-backdrop-filter: blur(8px) saturate(140%);
         cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s, color 0.2s;
       }
-
+      .action-buttons button:hover {
+        background: rgba(255, 255, 255, 0.38);
+        color: #007aff;
+        box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.18);
+      }
       #run-button {
-        background-color: #4caf50;
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        color: #222;
       }
-
+      #run-button:hover {
+        background: linear-gradient(135deg, #fed6e3 0%, #a8edea 100%);
+        color: #007aff;
+      }
       #copy-url {
-        background-color: #0056b3;
+        background: linear-gradient(135deg, #b6e0fe 0%, #e0c3fc 100%);
+        color: #222;
       }
-
       #pretty {
-        background-color: #5bc0de;
+        background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        color: #222;
       }
-
       #new {
-        background-color: #ffb900;
+        background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);
+        color: #222;
       }
 
       .running {
         animation: pulse 1s infinite;
-        box-shadow: 0 0 15px rgba(76, 175, 80, 0.7);
+        box-shadow: 0 0 15px 4px rgba(76, 175, 80, 0.25);
       }
 
       @keyframes pulse {
         0% {
           transform: scale(1);
-          box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+          box-shadow: 0 0 15px 4px rgba(76, 175, 80, 0.1);
         }
         50% {
           transform: scale(1.05);
-          box-shadow: 0 0 25px rgba(76, 175, 80, 0.7);
+          box-shadow: 0 0 25px 8px rgba(76, 175, 80, 0.18);
         }
         100% {
           transform: scale(1);
-          box-shadow: 0 0 15px rgba(76, 175, 80, 0.4);
+          box-shadow: 0 0 15px 4px rgba(76, 175, 80, 0.1);
         }
-      }
-
-      #output {
-        background-color: #111;
-        color: #fff;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        padding: 10px;
-        box-sizing: border-box;
-        white-space: pre-wrap;
-        font-family: monospace;
-        min-height: 10em;
       }
 
       #sessions-list {
         margin-top: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
       }
-
       .session-item {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background-color: #e0e0e0;
-        padding: 10px;
-        margin-bottom: 5px;
-        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.22);
+        border-radius: 14px;
+        padding: 10px 14px;
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s;
       }
-
+      .session-item:hover {
+        background: rgba(255, 255, 255, 0.38);
+        box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.18);
+      }
       .session-item .delete-button {
         background: transparent;
         border: none;
         cursor: pointer;
         color: #ff6347;
         font-size: 18px;
+        margin-left: 8px;
       }
-
       .session-item .content-preview {
         font-size: 14px;
         color: #666;
         display: block;
       }
-
       .error {
         outline: 2px solid #ffcccc !important;
-        color: #ffcccc !important;
+        color: #ff3333 !important;
+        background: rgba(255, 0, 0, 0.08) !important;
       }
-
       .active {
-        background-color: #b0e0e6 !important;
+        background: rgba(0, 122, 255, 0.18) !important;
+        border: 1.5px solid #007aff !important;
       }
-
-      /* Media query to stack the layout vertically on mobile screens */
       @media (max-width: 768px) {
         .container {
-          flex-direction: column; /* Stack vertically */
+          flex-direction: column;
         }
-
         .right-column {
-          margin-top: 20px; /* Add some space between the two columns when stacked */
+          margin-top: 20px;
         }
       }
-
-      /* dark mode adjustments */
+      /* Liquid Glass: Dark mode */
       body.dark {
-        background-color: #121212;
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
         color: #e0e0e0;
+        background-size: 400% 400%;
+        animation: glass-bg-move 20s ease-in-out infinite;
       }
-
       body.dark .container {
-        color: #e0e0e0;
+        background: rgba(30, 30, 40, 0.32);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.28);
       }
-
-      body.dark #session-name {
-        background-color: #1e1e1e;
-        outline: 1px solid #444;
-        color: #e0e0e0;
+      body.dark .left-column,
+      body.dark .right-column {
+        background: rgba(30, 30, 40, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.18);
       }
-
-      body.dark #code-box {
-        background-color: #1e1e1e;
-        outline: 1px solid #444;
-        color: #e0e0e0;
-      }
-
-      body.dark .action-buttons button {
-        background-color: #444;
-        color: #e0e0e0;
-      }
-
-      body.dark #run-button {
-        background-color: #357a38; /* Darker green */
-      }
-
-      body.dark #copy-url {
-        background-color: #007399; /* Darker blue */
-      }
-
+      body.dark #session-name,
+      body.dark #code-box,
       body.dark #output {
-        background-color: #1e1e1e;
+        background: rgba(30, 30, 40, 0.32);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
         color: #e0e0e0;
-        outline: 1px solid #444;
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
       }
-
+      body.dark #output {
+        color: #e0e0e0;
+      }
+      body.dark .action-buttons button {
+        background: rgba(30, 30, 40, 0.22);
+        color: #e0e0e0;
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+      }
+      body.dark .action-buttons button:hover {
+        background: rgba(30, 30, 40, 0.38);
+        color: #7abaff;
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.28);
+      }
+      body.dark #run-button {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        color: #e0e0e0;
+      }
+      body.dark #run-button:hover {
+        background: linear-gradient(135deg, #414345 0%, #232526 100%);
+        color: #7abaff;
+      }
+      body.dark #copy-url {
+        background: linear-gradient(135deg, #434343 0%, #262626 100%);
+        color: #e0e0e0;
+      }
+      body.dark #pretty {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        color: #e0e0e0;
+      }
+      body.dark #new {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        color: #e0e0e0;
+      }
       body.dark .session-item {
-        background-color: #333;
+        background: rgba(30, 30, 40, 0.22);
+        border: 1px solid rgba(255, 255, 255, 0.08);
         color: #e0e0e0;
-        outline: 1px solid #555;
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
       }
-
+      body.dark .session-item:hover {
+        background: rgba(30, 30, 40, 0.38);
+        box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.28);
+      }
       body.dark .session-item .content-preview {
-        color: #999;
+        color: #b0b0b0;
       }
-
       body.dark .session-item .delete-button {
         color: #ff6666;
       }
-
-      body.dark .running {
-        box-shadow: 0 0 15px rgba(53, 122, 56, 0.7);
-      }
-
       body.dark .error {
         outline: 2px solid #ff6666 !important;
         color: #ff6666 !important;
+        background: rgba(255, 0, 0, 0.1) !important;
       }
-
       body.dark .active {
-        background-color: #4682b4 !important; /* Darker pale turquoise */
+        background: rgba(0, 122, 255, 0.18) !important;
+        border: 1.5px solid #7abaff !important;
       }
-
       body.dark a,
       body.dark a:visited {
         color: #e0e0e0;
+      }
+      @media (min-width: 768px) and (max-width: 1168px) {
+        .action-buttons .btn-text {
+          display: none;
+        }
       }
     </style>
   </head>
@@ -281,10 +369,10 @@
       </div>
       <div class="right-column">
         <div class="action-buttons">
-          <button id="run-button">▶️ Run</button>
-          <button id="pretty">💙 Prettify</button>
-          <button id="copy-url">⬆️ Share</button>
-          <button id="new">➕ New</button>
+          <button id="run-button">▶️ <span class="btn-text">Run</span></button>
+          <button id="pretty">💙 <span class="btn-text">Prettify</span></button>
+          <button id="copy-url">⬆️ <span class="btn-text">Share</span></button>
+          <button id="new">➕ <span class="btn-text">New</span></button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
