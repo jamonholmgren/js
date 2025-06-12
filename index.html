@@ -248,6 +248,15 @@
         background: rgba(0, 122, 255, 0.18) !important;
         border: 1.5px solid #007aff !important;
       }
+      .error-line {
+        background: rgba(255, 0, 0, 0.1) !important;
+        border-left: 3px solid #ff3333 !important;
+        transition: background 0.2s ease-in-out;
+      }
+      body.dark .error-line {
+        background: rgba(255, 0, 0, 0.15) !important;
+        border-left: 3px solid #ff6666 !important;
+      }
       @media (max-width: 768px) {
         .container {
           flex-direction: column;
@@ -412,25 +421,8 @@
       document.addEventListener("DOMContentLoaded", function () {
         applyDarkMode()
 
-        // Override console methods
-        ;(() => {
-          ;["log", "error", "warn", "info"].forEach(function (method) {
-            const originalMethod = console[method]
-            console[method] = function (...args) {
-              outputDiv.textContent += args.join(" ") + "\n"
-            }
-          })
-
-          const oldAssert = console.assert
-          console.assert = (condition, message) => {
-            if (!condition) {
-              console.error(message)
-              throw new Error(message)
-            }
-
-            oldAssert.apply(console, [condition, message])
-          }
-        })()
+        // Initialize console overrides for the main window
+        //overrideConsole(window)
 
         // check for shared or ID session in URL
         const urlParams = new URLSearchParams(window.location.search)
@@ -517,9 +509,30 @@
 
           const wrappedCode = `;(async () => {
             try{
+              // MAGIC_LINE_MARKER - DO NOT REMOVE THIS COMMENT
               ${code}
             } catch(e) {
-              parent.showError(e);
+              // Calculate line offset based on the magic marker position
+              const wrappedLines = \`\${e.stack}\`.split('\\n');
+              const magicLineMatch = wrappedLines.findIndex(line => 
+                line.includes('MAGIC_LINE_MARKER')
+              );
+              
+              // If we found the magic line, use it to calculate the offset
+              // Otherwise fall back to the raw line number
+              const lineOffset = magicLineMatch >= 0 ? magicLineMatch + 1 : 0;
+              
+              // Send error details to parent window with adjusted line number
+              parent.showError({
+                message: e.toString(),
+                stack: e.stack,
+                line: e.lineNumber ? Math.max(1, e.lineNumber - lineOffset) : (
+                  e.stack && e.stack.split('\\n')[1]?.match(/:(\\d+):/)?.[1]
+                    ? Math.max(1, parseInt(e.stack.split('\\n')[1].match(/:(\\d+):/)?.[1]) - lineOffset)
+                    : null
+                ),
+                column: e.columnNumber || (e.stack && e.stack.split('\\n')[1]?.match(/:(\\d+):(\\d+)/)?.[2])
+              });
             }
           })();`
 
@@ -540,12 +553,53 @@
       // Modify the showError function to work with the iframe
       function showError(error) {
         outputDiv.classList.add("error")
-        outputDiv.textContent = error.toString()
+
+        // Remove any existing error line highlighting
+        const existingErrorLine = codeBox.parentElement.querySelector(".error-line")
+        if (existingErrorLine) {
+          existingErrorLine.classList.remove("error-line")
+        }
+
+        // Handle both Error objects and our custom error format from iframe
+        const lineNum = error.line ? parseInt(error.line) - 1 : null
+        const colNum = error.column ? parseInt(error.column) : null
+
+        // Format the error message
+        let errorMessage = error.message || error.toString()
+
+        // Remove the "Error:" prefix if it exists
+        errorMessage = errorMessage.replace(/^Error: /, "")
+
+        // Add line number if available
+        if (lineNum !== null) {
+          errorMessage = `Line ${lineNum + 1}: ${errorMessage}`
+        }
+
+        // Add stack trace if available, but only the first line
+        if (error.stack) {
+          const firstStackLine = error.stack.split("\n")[1]
+          if (firstStackLine) {
+            // Clean up the stack trace line
+            const cleanedStack = firstStackLine
+              .replace(/at eval \(eval at <anonymous> \([^)]+\)/, "")
+              .replace(/at <anonymous>/, "")
+              .replace(/at eval/, "")
+              .replace(/\([^)]+\)/, "") // Remove any remaining parenthetical content
+              .replace(/,\s*<anonymous>:\d+:\d+\)/, "") // Remove the line/column info from the end
+              .trim()
+            if (cleanedStack) {
+              errorMessage += "\n\n" + cleanedStack
+            }
+          }
+        }
+
+        outputDiv.textContent = errorMessage
       }
 
       // Modify console overrides to work with the iframe
       function overrideConsole(win) {
         ;["log", "error", "warn", "info"].forEach(function (method) {
+          const originalMethod = win.console[method]
           win.console[method] = function (...args) {
             outputDiv.textContent += args.join(" ") + "\n"
           }
@@ -795,11 +849,6 @@
           script.onerror = reject
           document.head.appendChild(script)
         })
-      }
-
-      function showError(error) {
-        outputDiv.classList.add("error")
-        outputDiv.textContent = error
       }
 
       function copyUrl() {
