@@ -13,6 +13,10 @@
         box-sizing: border-box;
       }
 
+      html,
+      body {
+        overflow-x: hidden;
+      }
       body {
         font-family: "San Francisco", "Lato", "Inter", sans-serif;
         margin: 0;
@@ -115,6 +119,15 @@
         display: flex;
         gap: 12px;
         align-items: stretch;
+        min-width: 0;
+      }
+      @media (max-width: 600px) {
+        .title-row #pretty .btn-text {
+          display: none;
+        }
+        .title-row #pretty {
+          padding: 12px 14px;
+        }
       }
       #session-name {
         flex: 1;
@@ -412,24 +425,25 @@
       .screenshot-toolbar {
         display: flex;
         align-items: center;
-        gap: 16px;
-        padding: 12px 20px;
+        gap: 12px;
+        padding: 10px 16px;
         background: #1a1a2e;
         border-bottom: 1px solid #333;
-        flex-wrap: wrap;
       }
       .screenshot-branding {
-        color: #888;
-        font-size: 13px;
-        font-weight: 500;
-        margin-right: auto;
+        color: #666;
+        font-size: 12px;
+        text-align: right;
+        padding: 8px 12px 0;
       }
-      .screenshot-toolbar label {
+      .screenshot-toolbar input[type="range"] {
+        width: 70px;
+        accent-color: #7abaff;
+      }
+      #font-size-value {
         color: #aaa;
-        font-size: 13px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+        font-size: 12px;
+        min-width: 30px;
       }
       .screenshot-toolbar select {
         background: #2a2a3e;
@@ -574,8 +588,10 @@
         color: #111;
         border-color: #7abaff;
       }
+      .screenshot-toolbar-spacer {
+        flex: 1;
+      }
       .screenshot-close {
-        margin-left: auto;
         background: transparent;
         border: none;
         color: #888;
@@ -610,14 +626,27 @@
       }
       @media (max-width: 600px) {
         .screenshot-toolbar {
-          padding: 10px 14px;
-          gap: 10px;
-        }
-        .screenshot-toolbar label {
-          font-size: 12px;
+          padding: 8px 10px;
+          gap: 6px;
         }
         .screenshot-toolbar input[type="range"] {
-          width: 80px;
+          width: 50px;
+        }
+        #font-size-value {
+          min-width: 24px;
+          font-size: 11px;
+        }
+        .screenshot-toolbar select {
+          padding: 4px 6px;
+          font-size: 12px;
+        }
+        #wrap-toggle,
+        #diff-toggle {
+          font-size: 14px;
+          padding: 2px 6px;
+        }
+        .screenshot-close {
+          font-size: 22px;
         }
         .screenshot-code-container {
           padding: 12px;
@@ -662,11 +691,8 @@
 
     <div class="screenshot-overlay" id="screenshot-overlay">
       <div class="screenshot-toolbar">
-        <span class="screenshot-branding">js.jamon.dev</span>
-        <label>
-          <input type="range" id="font-size-slider" min="8" max="24" value="14" />
-          <span id="font-size-value">14px</span>
-        </label>
+        <input type="range" id="font-size-slider" min="8" max="24" value="14" />
+        <span id="font-size-value">14px</span>
         <select id="theme-picker">
           <option value="github-dark">GitHub Dark</option>
           <option value="monokai">Monokai</option>
@@ -679,10 +705,12 @@
         </select>
         <button id="diff-toggle" title="Diff mode">±</button>
         <button id="wrap-toggle" title="Word wrap">↩️</button>
+        <span class="screenshot-toolbar-spacer"></span>
         <button class="screenshot-close" id="screenshot-close">&times;</button>
       </div>
       <div class="screenshot-code-container" id="screenshot-code-container">
         <pre><code id="screenshot-code" class="language-javascript"></code></pre>
+        <div class="screenshot-branding">js.jamon.dev</div>
       </div>
     </div>
 
