@@ -111,9 +111,35 @@
         color: #222;
       }
 
+      .title-row {
+        display: flex;
+        gap: 12px;
+        align-items: stretch;
+      }
       #session-name {
+        flex: 1;
         font-size: 20px;
         padding: 16px;
+      }
+      .title-row #pretty {
+        padding: 12px 18px;
+        font-size: 15px;
+        border: none;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
+        color: #222;
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(10px) saturate(140%);
+        -webkit-backdrop-filter: blur(10px) saturate(140%);
+        cursor: pointer;
+        transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+      .title-row #pretty:hover {
+        background: linear-gradient(135deg, #a6c1ee 0%, #fbc2eb 100%);
+        color: #007aff;
+        box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.18);
       }
 
       #code-box {
@@ -175,12 +201,12 @@
         background: linear-gradient(135deg, #b6e0fe 0%, #e0c3fc 100%);
         color: #222;
       }
-      #pretty {
-        background: linear-gradient(135deg, #fbc2eb 0%, #a6c1ee 100%);
-        color: #222;
-      }
       #new {
         background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);
+        color: #222;
+      }
+      #screenshot {
+        background: linear-gradient(135deg, #c3cfe2 0%, #f5f7fa 100%);
         color: #222;
       }
 
@@ -291,6 +317,14 @@
         color: #e0e0e0;
         box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
       }
+      body.dark .title-row #pretty {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        color: #e0e0e0;
+      }
+      body.dark .title-row #pretty:hover {
+        background: linear-gradient(135deg, #414345 0%, #232526 100%);
+        color: #7abaff;
+      }
       body.dark #output {
         color: #e0e0e0;
       }
@@ -316,11 +350,11 @@
         background: linear-gradient(135deg, #434343 0%, #262626 100%);
         color: #e0e0e0;
       }
-      body.dark #pretty {
+      body.dark #new {
         background: linear-gradient(135deg, #232526 0%, #414345 100%);
         color: #e0e0e0;
       }
-      body.dark #new {
+      body.dark #screenshot {
         background: linear-gradient(135deg, #232526 0%, #414345 100%);
         color: #e0e0e0;
       }
@@ -358,6 +392,230 @@
           display: none;
         }
       }
+
+      /* Screenshot Overlay */
+      .screenshot-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.85);
+        z-index: 1000;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+      }
+      .screenshot-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      .screenshot-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 12px 20px;
+        background: #1a1a2e;
+        border-bottom: 1px solid #333;
+        flex-wrap: wrap;
+      }
+      .screenshot-branding {
+        color: #888;
+        font-size: 13px;
+        font-weight: 500;
+        margin-right: auto;
+      }
+      .screenshot-toolbar label {
+        color: #aaa;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .screenshot-toolbar select {
+        background: #2a2a3e;
+        border: 1px solid #555;
+        color: #ddd;
+        padding: 6px 10px;
+        border-radius: 6px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      .screenshot-toolbar select:hover {
+        border-color: #777;
+      }
+      #wrap-toggle {
+        font-size: 16px;
+        padding: 4px 10px;
+      }
+
+      /* Prettier Config Overlay */
+      .config-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+      }
+      .config-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      .config-modal {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 20px;
+        width: 90%;
+        max-width: 500px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .config-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 14px;
+        color: #ddd;
+        font-weight: 600;
+      }
+      .config-close {
+        background: transparent;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+      }
+      .config-close:hover {
+        color: #fff;
+      }
+      #prettier-config {
+        width: 100%;
+        height: 200px;
+        background: #0d1117;
+        border: 1px solid #333;
+        border-radius: 8px;
+        color: #e0e0e0;
+        font-family: "SF Mono", "Fira Code", monospace;
+        font-size: 13px;
+        padding: 12px;
+        resize: vertical;
+      }
+      .config-error {
+        color: #ff6b6b;
+        font-size: 13px;
+        margin-top: 8px;
+        min-height: 20px;
+      }
+      .config-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        justify-content: flex-end;
+      }
+      .config-actions button {
+        padding: 8px 18px;
+        border-radius: 6px;
+        border: 1px solid #555;
+        background: #2a2a3e;
+        color: #ddd;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .config-actions button:hover {
+        background: #3a3a4e;
+        border-color: #777;
+      }
+      .config-actions button:last-child {
+        background: #7abaff;
+        color: #111;
+        border-color: #7abaff;
+      }
+      .config-actions button:last-child:hover {
+        background: #5aa0e8;
+        border-color: #5aa0e8;
+      }
+      .screenshot-toolbar input[type="range"] {
+        width: 100px;
+        accent-color: #7abaff;
+      }
+      .screenshot-toolbar button {
+        background: transparent;
+        border: 1px solid #555;
+        color: #ddd;
+        padding: 6px 14px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.15s, border-color 0.15s;
+      }
+      .screenshot-toolbar button:hover {
+        background: #333;
+        border-color: #777;
+      }
+      .screenshot-toolbar button.active {
+        background: #7abaff;
+        color: #111;
+        border-color: #7abaff;
+      }
+      .screenshot-close {
+        margin-left: auto;
+        background: transparent;
+        border: none;
+        color: #888;
+        font-size: 28px;
+        cursor: pointer;
+        padding: 0 8px;
+        line-height: 1;
+        transition: color 0.15s;
+      }
+      .screenshot-close:hover {
+        color: #fff;
+      }
+      .screenshot-code-container {
+        flex: 1;
+        overflow: auto;
+        padding: 20px;
+      }
+      .screenshot-code-container pre {
+        margin: 0;
+        background: #0d1117 !important;
+        border-radius: 12px;
+        padding: 20px;
+        min-height: 100%;
+      }
+      .screenshot-code-container code {
+        font-family: "SF Mono", "Fira Code", "Monaco", "Consolas", monospace;
+        line-height: 1.5;
+      }
+      .screenshot-code-container.wrap-text pre {
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+      @media (max-width: 600px) {
+        .screenshot-toolbar {
+          padding: 10px 14px;
+          gap: 10px;
+        }
+        .screenshot-toolbar label {
+          font-size: 12px;
+        }
+        .screenshot-toolbar input[type="range"] {
+          width: 80px;
+        }
+        .screenshot-code-container {
+          padding: 12px;
+        }
+        .screenshot-code-container pre {
+          padding: 14px;
+          border-radius: 8px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -367,7 +625,10 @@
 
     <div class="container">
       <div class="left-column">
-        <input id="session-name" placeholder="Title" autocapitalize="off" autocorrect="off" />
+        <div class="title-row">
+          <input id="session-name" placeholder="Title" autocapitalize="off" autocorrect="off" />
+          <button id="pretty">💙 <span class="btn-text">Format</span></button>
+        </div>
         <textarea
           id="code-box"
           placeholder="Write your JavaScript code here..."
@@ -379,8 +640,8 @@
       <div class="right-column">
         <div class="action-buttons">
           <button id="run-button">▶️ <span class="btn-text">Run</span></button>
-          <button id="pretty">💙 <span class="btn-text">Format</span></button>
           <button id="copy-url">⬆️ <span class="btn-text">Share</span></button>
+          <button id="screenshot">📷 <span class="btn-text">Shot</span></button>
           <button id="new">➕ <span class="btn-text">New</span></button>
         </div>
         <div id="output"></div>
@@ -388,19 +649,57 @@
       </div>
     </div>
 
+    <div class="screenshot-overlay" id="screenshot-overlay">
+      <div class="screenshot-toolbar">
+        <span class="screenshot-branding">js.jamon.dev</span>
+        <label>
+          Size
+          <input type="range" id="font-size-slider" min="8" max="24" value="14" />
+          <span id="font-size-value">14px</span>
+        </label>
+        <select id="theme-picker">
+          <option value="github-dark">GitHub Dark</option>
+          <option value="monokai">Monokai</option>
+          <option value="base16/dracula">Dracula</option>
+          <option value="nord">Nord</option>
+          <option value="atom-one-dark">Atom One Dark</option>
+          <option value="vs2015">VS 2015</option>
+          <option value="tokyo-night-dark">Tokyo Night</option>
+          <option value="androidstudio">Android Studio</option>
+        </select>
+        <button id="wrap-toggle" title="Word wrap">↩️</button>
+        <button class="screenshot-close" id="screenshot-close">&times;</button>
+      </div>
+      <div class="screenshot-code-container" id="screenshot-code-container">
+        <pre><code id="screenshot-code" class="language-javascript"></code></pre>
+      </div>
+    </div>
+
     <footer>
       <p>
         <a href="" onclick="toggleDarkMode(); return false;">mode: light</a>
-        • my website:
-        <a href="https://jamon.dev" target="_blank">jamon.dev</a>
-        • my company:
-        <a href="https://infinite.red" target="_blank">infinite.red</a>
-        • my twitter:
-        <a href="https://twitter.com/jamonholmgren" target="_blank">@jamonholmgren</a>
-        • source:
-        <a href="https://github.com/jamonholmgren/js" target="_blank">jamonholmgren/js</a>
+        • <a href="" onclick="openPrettierConfig(); return false;">prettier config</a> •
+        <a href="https://jamon.dev" target="_blank">jamon.dev</a> •
+        <a href="https://infinite.red" target="_blank">infinite.red</a> •
+        <a href="https://twitter.com/jamonholmgren" target="_blank">@jamonholmgren</a> •
+        <a href="https://github.com/jamonholmgren/js" target="_blank">source</a>
       </p>
     </footer>
+
+    <div class="config-overlay" id="prettier-overlay">
+      <div class="config-modal">
+        <div class="config-header">
+          <span>Prettier Config</span>
+          <button class="config-close" onclick="closePrettierConfig()">&times;</button>
+        </div>
+        <textarea id="prettier-config" spellcheck="false"></textarea>
+        <div id="config-error" class="config-error"></div>
+        <div class="config-actions">
+          <button onclick="resetPrettierConfig()">Reset</button>
+          <button onclick="savePrettierConfig()">Save</button>
+        </div>
+      </div>
+    </div>
 
     <script>
       let currentSession = ""
@@ -552,6 +851,7 @@
 
       // Modify the showError function to work with the iframe
       function showError(error) {
+        console.error("[Sandbox Error]", error)
         outputDiv.classList.add("error")
 
         // Remove any existing error line highlighting
@@ -599,8 +899,8 @@
       // Modify console overrides to work with the iframe
       function overrideConsole(win) {
         ;["log", "error", "warn", "info"].forEach(function (method) {
-          const originalMethod = win.console[method]
           win.console[method] = function (...args) {
+            console[method]("[Sandbox]", ...args)
             outputDiv.textContent += args.join(" ") + "\n"
           }
         })
@@ -820,8 +1120,10 @@
       prettyButton.addEventListener("click", prettifyCode)
 
       async function prettifyCode() {
+        const btn = prettyButton
+        const originalText = btn.innerHTML
+
         if (typeof prettier === "undefined") {
-          // load prettier on-demand if it's not already loaded
           const p1 = loadScript("https://unpkg.com/prettier@3.3.3/standalone.js")
           const p2 = loadScript("https://unpkg.com/prettier@3.3.3/plugins/estree.js")
           const p3 = loadScript("https://unpkg.com/prettier@3.3.3/plugins/typescript.js")
@@ -830,15 +1132,15 @@
 
         const code = codeBox.value
         try {
-          const formattedCode = await prettier.format(code, {
-            parser: "typescript",
-            plugins: prettierPlugins,
-            printWidth: 100,
-          })
+          const config = { ...getPrettierConfig(), plugins: prettierPlugins }
+          const formattedCode = await prettier.format(code, config)
           replaceCode(formattedCode)
+          btn.innerHTML = '✅ <span class="btn-text">Format</span>'
         } catch (error) {
           showError("Failed to prettify code: \n\n" + error)
+          btn.innerHTML = '❌ <span class="btn-text">Format</span>'
         }
+        setTimeout(() => (btn.innerHTML = originalText), 2000)
       }
 
       async function loadScript(src) {
@@ -909,6 +1211,177 @@
         }
         darkModeButton.textContent = "mode: " + mode()
       }
+
+      // Prettier config
+      const prettierConfigKey = "prettierConfig"
+      const prettierOverlay = document.getElementById("prettier-overlay")
+      const prettierConfigTextarea = document.getElementById("prettier-config")
+      const configError = document.getElementById("config-error")
+
+      const defaultPrettierConfig = {
+        parser: "typescript",
+        printWidth: 100,
+        tabWidth: 2,
+        useTabs: false,
+        semi: false,
+        singleQuote: false,
+        trailingComma: "es5",
+        bracketSpacing: true,
+        arrowParens: "always",
+      }
+
+      function getPrettierConfig() {
+        try {
+          const saved = localStorage.getItem(prettierConfigKey)
+          return saved ? JSON.parse(saved) : { ...defaultPrettierConfig }
+        } catch {
+          return { ...defaultPrettierConfig }
+        }
+      }
+
+      function openPrettierConfig() {
+        const config = getPrettierConfig()
+        prettierConfigTextarea.value = JSON.stringify(config, null, 2)
+        configError.textContent = ""
+        prettierOverlay.classList.add("visible")
+      }
+
+      function closePrettierConfig() {
+        prettierOverlay.classList.remove("visible")
+      }
+
+      function savePrettierConfig() {
+        try {
+          const config = JSON.parse(prettierConfigTextarea.value)
+          config.parser = "typescript"
+          config.plugins = undefined
+          localStorage.setItem(prettierConfigKey, JSON.stringify(config))
+          configError.textContent = ""
+          closePrettierConfig()
+        } catch (e) {
+          configError.textContent = "Invalid JSON: " + e.message
+        }
+      }
+
+      function resetPrettierConfig() {
+        prettierConfigTextarea.value = JSON.stringify(defaultPrettierConfig, null, 2)
+        configError.textContent = ""
+      }
+
+      prettierOverlay.addEventListener("click", (e) => {
+        if (e.target === prettierOverlay) closePrettierConfig()
+      })
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && prettierOverlay.classList.contains("visible")) {
+          closePrettierConfig()
+        }
+      })
+
+      // Screenshot overlay
+      const screenshotButton = document.getElementById("screenshot")
+      const screenshotOverlay = document.getElementById("screenshot-overlay")
+      const screenshotCode = document.getElementById("screenshot-code")
+      const screenshotContainer = document.getElementById("screenshot-code-container")
+      const screenshotClose = document.getElementById("screenshot-close")
+      const fontSizeSlider = document.getElementById("font-size-slider")
+      const fontSizeValue = document.getElementById("font-size-value")
+      const wrapToggle = document.getElementById("wrap-toggle")
+
+      const screenshotSettingsKey = "screenshotSettings"
+      const themePicker = document.getElementById("theme-picker")
+      let hljsLoaded = false
+      let currentThemeLink = null
+
+      function getScreenshotSettings() {
+        const defaults = { fontSize: 14, wordWrap: true, theme: "github-dark" }
+        try {
+          return { ...defaults, ...JSON.parse(localStorage.getItem(screenshotSettingsKey)) }
+        } catch {
+          return defaults
+        }
+      }
+
+      function saveScreenshotSettings(settings) {
+        localStorage.setItem(screenshotSettingsKey, JSON.stringify(settings))
+      }
+
+      function applyScreenshotSettings() {
+        const settings = getScreenshotSettings()
+        fontSizeSlider.value = settings.fontSize
+        fontSizeValue.textContent = settings.fontSize + "px"
+        screenshotCode.style.fontSize = settings.fontSize + "px"
+        themePicker.value = settings.theme
+        if (settings.wordWrap) {
+          screenshotContainer.classList.add("wrap-text")
+          wrapToggle.classList.add("active")
+        } else {
+          screenshotContainer.classList.remove("wrap-text")
+          wrapToggle.classList.remove("active")
+        }
+      }
+
+      function loadTheme(theme) {
+        const url = `https://unpkg.com/@highlightjs/cdn-assets@11.9.0/styles/${theme}.min.css`
+        if (currentThemeLink) currentThemeLink.remove()
+        const css = document.createElement("link")
+        css.rel = "stylesheet"
+        css.href = url
+        document.head.appendChild(css)
+        currentThemeLink = css
+      }
+
+      async function loadHighlightJs() {
+        if (hljsLoaded) return
+        const settings = getScreenshotSettings()
+        loadTheme(settings.theme)
+        await loadScript("https://unpkg.com/@highlightjs/cdn-assets@11.9.0/highlight.min.js")
+        hljsLoaded = true
+      }
+
+      async function openScreenshot() {
+        await loadHighlightJs()
+        screenshotCode.textContent = codeBox.value
+        delete screenshotCode.dataset.highlighted
+        hljs.highlightElement(screenshotCode)
+        applyScreenshotSettings()
+        screenshotOverlay.classList.add("visible")
+        document.body.style.overflow = "hidden"
+      }
+
+      function closeScreenshot() {
+        screenshotOverlay.classList.remove("visible")
+        document.body.style.overflow = ""
+      }
+
+      screenshotButton.addEventListener("click", openScreenshot)
+      screenshotClose.addEventListener("click", closeScreenshot)
+      screenshotOverlay.addEventListener("click", (e) => {
+        if (e.target === screenshotOverlay) closeScreenshot()
+      })
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && screenshotOverlay.classList.contains("visible")) {
+          closeScreenshot()
+        }
+      })
+
+      fontSizeSlider.addEventListener("input", () => {
+        const size = fontSizeSlider.value
+        fontSizeValue.textContent = size + "px"
+        screenshotCode.style.fontSize = size + "px"
+        saveScreenshotSettings({ ...getScreenshotSettings(), fontSize: parseInt(size) })
+      })
+
+      wrapToggle.addEventListener("click", () => {
+        const isWrapped = screenshotContainer.classList.toggle("wrap-text")
+        wrapToggle.classList.toggle("active", isWrapped)
+        saveScreenshotSettings({ ...getScreenshotSettings(), wordWrap: isWrapped })
+      })
+
+      themePicker.addEventListener("change", () => {
+        const theme = themePicker.value
+        loadTheme(theme)
+        saveScreenshotSettings({ ...getScreenshotSettings(), theme })
+      })
     </script>
   </body>
 </html>

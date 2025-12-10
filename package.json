@@ -1,4 +1,13 @@
 {
+  "name": "js.jamon.dev",
+  "version": "1.0.0",
+  "description": "A mobile-friendly JavaScript playground by Jamon Holmgren",
+  "main": "index.html",
+  "author": "Jamon Holmgren",
+  "license": "MIT",
+  "scripts": {
+    "start": "bun run index.html"
+  },
   "prettier": {
     "printWidth": 100,
     "semi": false
