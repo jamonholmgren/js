@@ -161,14 +161,50 @@
         box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.18);
       }
 
+      .code-editor {
+        display: flex;
+        background: rgba(255, 255, 255, 0.32);
+        border-radius: 22px;
+        border: 1.5px solid rgba(255, 255, 255, 0.35);
+        box-shadow: 0 2px 8px 0 rgba(31, 38, 135, 0.1);
+        backdrop-filter: blur(14px) saturate(160%);
+        -webkit-backdrop-filter: blur(14px) saturate(160%);
+        overflow: hidden;
+      }
+      .line-numbers {
+        padding: 18px 0 18px 12px;
+        font-family: monospace;
+        font-size: 16px;
+        line-height: 1.5em;
+        color: #999;
+        text-align: right;
+        user-select: none;
+        min-width: 32px;
+        overflow: hidden;
+      }
       #code-box {
+        flex: 1;
         min-height: 30em;
         font-size: 16px;
         font-family: monospace;
         line-height: 1.5em;
         white-space: pre;
-        padding: 18px;
+        padding: 18px 18px 18px 10px;
         resize: vertical;
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        outline: none;
+      }
+      .code-editor:focus-within {
+        outline: 2px solid rgba(0, 122, 255, 0.5);
+        outline-offset: -2px;
+      }
+      body.dark .code-editor:focus-within {
+        outline-color: rgba(122, 186, 255, 0.5);
       }
 
       #output {
@@ -218,10 +254,6 @@
       }
       #copy-url {
         background: linear-gradient(135deg, #b6e0fe 0%, #e0c3fc 100%);
-        color: #222;
-      }
-      #new {
-        background: linear-gradient(135deg, #fddb92 0%, #d1fdff 100%);
         color: #222;
       }
       #screenshot {
@@ -284,6 +316,14 @@
         color: #666;
         display: block;
       }
+      .session-item.new-snippet {
+        border: 1.5px dashed rgba(0, 122, 255, 0.4);
+        color: #007aff;
+      }
+      body.dark .session-item.new-snippet {
+        border-color: rgba(122, 186, 255, 0.4);
+        color: #7abaff;
+      }
       .error {
         outline: 2px solid #ffcccc !important;
         color: #ff3333 !important;
@@ -343,12 +383,22 @@
         box-shadow: 0 4px 24px 0 rgba(0, 0, 0, 0.18);
       }
       body.dark #session-name,
-      body.dark #code-box,
       body.dark #output {
         background: rgba(30, 30, 40, 0.32);
         border: 1.5px solid rgba(255, 255, 255, 0.1);
         color: #e0e0e0;
         box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+      }
+      body.dark .code-editor {
+        background: rgba(30, 30, 40, 0.32);
+        border: 1.5px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 2px 8px 0 rgba(0, 0, 0, 0.18);
+      }
+      body.dark #code-box {
+        color: #e0e0e0;
+      }
+      body.dark .line-numbers {
+        color: #666;
       }
       body.dark .title-row #pretty {
         background: linear-gradient(135deg, #232526 0%, #414345 100%);
@@ -381,10 +431,6 @@
       }
       body.dark #copy-url {
         background: linear-gradient(135deg, #434343 0%, #262626 100%);
-        color: #e0e0e0;
-      }
-      body.dark #new {
-        background: linear-gradient(135deg, #232526 0%, #414345 100%);
         color: #e0e0e0;
       }
       body.dark #screenshot {
@@ -689,20 +735,22 @@
           <input id="session-name" placeholder="Title" autocapitalize="off" autocorrect="off" />
           <button id="pretty">💙 <span class="btn-text">Format</span></button>
         </div>
-        <textarea
-          id="code-box"
-          placeholder="Write your JavaScript code here..."
-          autocapitalize="off"
-          autocorrect="off"
-          spellcheck="false"
-        ></textarea>
+        <div class="code-editor">
+          <div class="line-numbers" id="line-numbers"></div>
+          <textarea
+            id="code-box"
+            placeholder="Write your JavaScript code here..."
+            autocapitalize="off"
+            autocorrect="off"
+            spellcheck="false"
+          ></textarea>
+        </div>
       </div>
       <div class="right-column">
         <div class="action-buttons">
           <button id="run-button">▶️ <span class="btn-text">Run</span></button>
           <button id="copy-url">⬆️ <span class="btn-text">Share</span></button>
           <button id="screenshot">📷 <span class="btn-text">Shot</span></button>
-          <button id="new">➕ <span class="btn-text">New</span></button>
         </div>
         <div id="output"></div>
         <div id="sessions-list"></div>
@@ -771,7 +819,6 @@
       const sessionsList = document.getElementById("sessions-list")
       const runButton = document.getElementById("run-button")
       const copyUrlButton = document.getElementById("copy-url")
-      const newButton = document.getElementById("new")
       const prettyButton = document.getElementById("pretty")
       const outputDiv = document.getElementById("output")
       const darkModeButton = document.querySelector("footer a")
@@ -797,11 +844,30 @@
         }
 
         updateSessionsList()
+        updateLineNumbers()
       })
 
       // Save the code and session name to localStorage on input
       codeBox.addEventListener("input", saveCurrentSession)
       sessionNameInput.addEventListener("input", saveCurrentSession)
+
+      // Line numbers
+      const lineNumbers = document.getElementById("line-numbers")
+
+      function updateLineNumbers() {
+        const lines = codeBox.value.split("\n").length
+        const nums = []
+        for (let i = 1; i <= lines; i++) nums.push(i)
+        lineNumbers.innerHTML = nums.join("<br>")
+      }
+
+      function syncScroll() {
+        lineNumbers.scrollTop = codeBox.scrollTop
+      }
+
+      codeBox.addEventListener("input", updateLineNumbers)
+      codeBox.addEventListener("scroll", syncScroll)
+      updateLineNumbers()
 
       function parseImports(code) {
         const importRegex = /\/\/\s*@import\s+([^/\s]+(?:\/[^/\s]+)*\.js)/g
@@ -1025,6 +1091,7 @@
           currentSession = sessions[id].name
           currentSessionId = sessions[id].id
           outputDiv.textContent = "// run to see output"
+          updateLineNumbers()
         }
 
         // Clear any existing output
@@ -1048,6 +1115,14 @@
       function updateSessionsList() {
         const sessions = getSessions()
         sessionsList.innerHTML = ""
+
+        // Add "new snippet" item at top
+        const newItem = document.createElement("div")
+        newItem.className = "session-item new-snippet"
+        newItem.innerHTML = "<span>➕ Start a new snippet</span>"
+        newItem.onclick = newSession
+        sessionsList.appendChild(newItem)
+
         Object.values(sessions)
           .reverse()
           .forEach((session) => sessionsList.appendChild(createSessionItem(session)))
@@ -1115,7 +1190,6 @@
 
       // Copy the current code as a URL
       copyUrlButton.addEventListener("click", copyUrl)
-      newButton.addEventListener("click", newSession)
       codeBox.addEventListener("keydown", function (e) {
         const codeBox = this
         const tabCharacter = "  " // Two spaces for indentation
@@ -1353,7 +1427,7 @@
       let currentThemeLink = null
 
       function getScreenshotSettings() {
-        const defaults = { fontSize: 14, wordWrap: true, theme: "github-dark", diffMode: true }
+        const defaults = { fontSize: 10, wordWrap: true, theme: "github-dark", diffMode: true }
         try {
           return { ...defaults, ...JSON.parse(localStorage.getItem(screenshotSettingsKey)) }
         } catch {
