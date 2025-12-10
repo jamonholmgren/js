@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Jamon's JS Playground</title>
+    <title>js.jamon.dev</title>
     <link
       href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
       rel="stylesheet"
@@ -55,6 +55,12 @@
         font-family: "Lato", sans-serif;
         font-weight: 400;
         font-size: 2.5rem;
+      }
+      @media (max-width: 600px) {
+        h1 {
+          font-size: 1.4rem;
+          margin: 12px 0;
+        }
       }
 
       .container {
@@ -299,9 +305,23 @@
       @media (max-width: 768px) {
         .container {
           flex-direction: column;
+          width: 100%;
+          margin: 10px auto;
+          padding: 10px;
+          border-radius: 16px;
+          gap: 12px;
+        }
+        .left-column,
+        .right-column {
+          padding: 14px 10px;
+          border-radius: 14px;
         }
         .right-column {
-          margin-top: 20px;
+          margin-top: 0;
+        }
+        #code-box {
+          border-radius: 12px;
+          padding: 12px;
         }
       }
       /* Liquid Glass: Dark mode */
@@ -660,7 +680,7 @@
   </head>
   <body>
     <header>
-      <h1>Jamon's JS Playground</h1>
+      <h1>js.jamon.dev</h1>
     </header>
 
     <div class="container">
