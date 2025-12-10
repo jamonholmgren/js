@@ -443,9 +443,20 @@
       .screenshot-toolbar select:hover {
         border-color: #777;
       }
-      #wrap-toggle {
+      #wrap-toggle,
+      #diff-toggle {
         font-size: 16px;
         padding: 4px 10px;
+      }
+      .screenshot-code-container .diff-add {
+        display: inline-block;
+        width: 100%;
+        background: rgba(46, 160, 67, 0.25);
+      }
+      .screenshot-code-container .diff-del {
+        display: inline-block;
+        width: 100%;
+        background: rgba(248, 81, 73, 0.25);
       }
 
       /* Prettier Config Overlay */
@@ -667,6 +678,7 @@
           <option value="tokyo-night-dark">Tokyo Night</option>
           <option value="androidstudio">Android Studio</option>
         </select>
+        <button id="diff-toggle" title="Diff mode">±</button>
         <button id="wrap-toggle" title="Word wrap">↩️</button>
         <button class="screenshot-close" id="screenshot-close">&times;</button>
       </div>
@@ -1289,11 +1301,12 @@
 
       const screenshotSettingsKey = "screenshotSettings"
       const themePicker = document.getElementById("theme-picker")
+      const diffToggle = document.getElementById("diff-toggle")
       let hljsLoaded = false
       let currentThemeLink = null
 
       function getScreenshotSettings() {
-        const defaults = { fontSize: 14, wordWrap: true, theme: "github-dark" }
+        const defaults = { fontSize: 14, wordWrap: true, theme: "github-dark", diffMode: true }
         try {
           return { ...defaults, ...JSON.parse(localStorage.getItem(screenshotSettingsKey)) }
         } catch {
@@ -1318,6 +1331,7 @@
           screenshotContainer.classList.remove("wrap-text")
           wrapToggle.classList.remove("active")
         }
+        diffToggle.classList.toggle("active", settings.diffMode)
       }
 
       function loadTheme(theme) {
@@ -1328,6 +1342,20 @@
         css.href = url
         document.head.appendChild(css)
         currentThemeLink = css
+      }
+
+      function applyDiffHighlighting() {
+        const settings = getScreenshotSettings()
+        if (!settings.diffMode) return
+        const html = screenshotCode.innerHTML
+        const lines = html.split("\n")
+        const processed = lines.map((line) => {
+          const stripped = line.replace(/<[^>]*>/g, "")
+          if (stripped.startsWith("+")) return `<span class="diff-add">${line}</span>`
+          if (stripped.startsWith("-")) return `<span class="diff-del">${line}</span>`
+          return line
+        })
+        screenshotCode.innerHTML = processed.join("\n")
       }
 
       async function loadHighlightJs() {
@@ -1344,6 +1372,7 @@
         delete screenshotCode.dataset.highlighted
         hljs.highlightElement(screenshotCode)
         applyScreenshotSettings()
+        applyDiffHighlighting()
         screenshotOverlay.classList.add("visible")
         document.body.style.overflow = "hidden"
       }
@@ -1381,6 +1410,18 @@
         const theme = themePicker.value
         loadTheme(theme)
         saveScreenshotSettings({ ...getScreenshotSettings(), theme })
+      })
+
+      diffToggle.addEventListener("click", () => {
+        const settings = getScreenshotSettings()
+        const newDiffMode = !settings.diffMode
+        saveScreenshotSettings({ ...settings, diffMode: newDiffMode })
+        diffToggle.classList.toggle("active", newDiffMode)
+        // Re-highlight to apply/remove diff styling
+        screenshotCode.textContent = codeBox.value
+        delete screenshotCode.dataset.highlighted
+        hljs.highlightElement(screenshotCode)
+        applyDiffHighlighting()
       })
     </script>
   </body>
