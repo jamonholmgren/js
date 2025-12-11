@@ -971,7 +971,7 @@
       const outputDiv = document.getElementById("output")
       const darkModeButton = document.querySelector("footer a")
 
-      document.addEventListener("DOMContentLoaded", function () {
+      document.addEventListener("DOMContentLoaded", async function () {
         applyDarkMode()
 
         // Initialize console overrides for the main window
@@ -979,16 +979,25 @@
 
         // check for shared or ID session in URL
         const urlParams = new URLSearchParams(window.location.search)
-        const urlCode = urlParams.get("code")
+        const compressedCode = urlParams.get("c")
+        const legacyCode = urlParams.get("code")
         if (urlParams.has("id")) {
           const id = urlParams.get("id")
           loadSession(id)
-        } else if (urlCode) {
-          const decodedCode = decodeURIComponent(urlCode)
-          codeBox.value = decodedCode
+        } else if (compressedCode) {
+          // Load LZ-String and decompress
+          await loadScript("https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js")
+          const decodedCode = LZString.decompressFromEncodedURIComponent(compressedCode)
+          codeBox.value = decodedCode || ""
           sessionNameInput.value = ""
           currentSession = ""
-          currentSessionId = "" // Reset the session ID since it's loaded from URL
+          currentSessionId = ""
+        } else if (legacyCode) {
+          // Backward compatibility with old uncompressed URLs
+          codeBox.value = decodeURIComponent(legacyCode)
+          sessionNameInput.value = ""
+          currentSession = ""
+          currentSessionId = ""
         }
 
         updateSessionsList()
@@ -1275,21 +1284,23 @@
 
       const codeTemplates = [
         {
-          name: "🧭 A* Pathfinding",
+          name: "A* Pathfinding",
           code: `// A* Pathfinding Algorithm
 // Finds the shortest path through a grid
 
 const grid = [
-  [0, 0, 0, 0, 1, 0],
-  [1, 1, 0, 0, 1, 0],
-  [0, 0, 0, 1, 0, 0],
-  [0, 1, 0, 0, 0, 1],
-  [0, 1, 1, 1, 0, 0],
-  [0, 0, 0, 0, 0, 0],
+  [1, 1, 1, 1, 1, 1, 1, 1],
+  [1, 0, 0, 0, 0, 1, 0, 1],
+  [1, 1, 1, 0, 0, 1, 0, 1],
+  [1, 0, 0, 0, 1, 0, 0, 1],
+  [1, 0, 1, 0, 0, 0, 1, 1],
+  [1, 0, 1, 1, 1, 0, 0, 1],
+  [1, 0, 0, 0, 0, 0, 0, 1],
+  [1, 1, 1, 1, 1, 1, 1, 1],
 ]
 
-const start = [0, 0]
-const end = [5, 5]
+const start = [1, 1]
+const end = [6, 6]
 
 function heuristic(a, b) {
   return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1])
@@ -1322,12 +1333,46 @@ function aStar(grid, start, end) {
 }
 
 const path = aStar(grid, start, end)
-console.log("Path found:", path)
-console.log("\\nGrid with path (★ = path, █ = wall):")
+
+// Build direction map for path using box-drawing corners
+const arrows = { "0,1": "──", "0,-1": "──", "1,0": "│ ", "-1,0": "│ " }
+const corners = {
+  "0,1|1,0": "╮ ", "0,1|-1,0": "╯ ",   // was going right, now down/up
+  "0,-1|1,0": "╭─", "0,-1|-1,0": "╰─", // was going left, now down/up
+  "1,0|0,1": "╰─", "1,0|0,-1": "╯ ",   // was going down, now right/left
+  "-1,0|0,1": "╭─", "-1,0|0,-1": "╮ ", // was going up, now right/left
+}
+
+const pathMap = {}
+if (path) {
+  for (let i = 0; i < path.length; i++) {
+    const [x, y] = path[i]
+    const key = \`\${x},\${y}\`
+    
+    if (i === 0) { pathMap[key] = "● "; continue }
+    if (i === path.length - 1) { pathMap[key] = "◎ "; continue }
+    
+    const [px, py] = path[i - 1]
+    const [nx, ny] = path[i + 1]
+    const prevDir = \`\${x - px},\${y - py}\`
+    const nextDir = \`\${nx - x},\${ny - y}\`
+    
+    if (prevDir !== nextDir) {
+      pathMap[key] = corners[\`\${prevDir}|\${nextDir}\`] || "? "
+    } else {
+      pathMap[key] = arrows[nextDir] || "? "
+    }
+  }
+}
+
+console.log("Path found:", path?.length ? \`\${path.length} steps\` : "none")
+console.log("\\n● = start, ◎ = end, █ = wall\\n")
 grid.forEach((row, i) => {
-  console.log(row.map((cell, j) => 
-    path?.some(p => p[0] === i && p[1] === j) ? "★" : cell ? "█" : "·"
-  ).join(" "))
+  console.log(row.map((cell, j) => {
+    const key = \`\${i},\${j}\`
+    if (pathMap[key]) return pathMap[key]
+    return cell ? "██" : "  "
+  }).join(""))
 })`,
         },
         {
@@ -1638,18 +1683,18 @@ results
         })
       }
 
-      function copyUrl() {
-        let encodedCode = encodeURIComponent(codeBox.value)
-        // also convert parentheses to avoid URL encoding issues
-        encodedCode = encodedCode.replace(/\(/g, "%28").replace(/\)/g, "%29")
-        const url = `${window.location.origin}${window.location.pathname}?code=${encodedCode}`
+      async function copyUrl() {
+        if (typeof LZString === "undefined") {
+          await loadScript("https://unpkg.com/lz-string@1.5.0/libs/lz-string.min.js")
+        }
+        const compressed = LZString.compressToEncodedURIComponent(codeBox.value)
+        const url = `${window.location.origin}${window.location.pathname}?c=${compressed}`
         navigator.clipboard
           .writeText(url)
           .then(() => {
-            // temporarily change the button text to indicate success
-            const prevText = copyUrlButton.textContent
-            copyUrlButton.textContent = "✅ Share"
-            setTimeout(() => (copyUrlButton.textContent = prevText), 2000)
+            const prevText = copyUrlButton.innerHTML
+            copyUrlButton.innerHTML = '✅ <span class="btn-text">Share</span>'
+            setTimeout(() => (copyUrlButton.innerHTML = prevText), 2000)
           })
           .catch((err) => {
             showError("Failed to copy URL:\n\n" + err)
