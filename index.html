@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>js.jamon.dev</title>
     <link
-      href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Lato:wght@400;700&display=swap"
       rel="stylesheet"
     />
     <style>
@@ -173,7 +173,7 @@
       }
       .line-numbers {
         padding: 18px 0 18px 12px;
-        font-family: monospace;
+        font-family: "Fira Code", monospace;
         font-size: 16px;
         line-height: 1.5em;
         color: #999;
@@ -186,7 +186,7 @@
         flex: 1;
         min-height: 30em;
         font-size: 16px;
-        font-family: monospace;
+        font-family: "Fira Code", monospace;
         line-height: 1.5em;
         white-space: pre;
         padding: 18px 18px 18px 10px;
@@ -206,13 +206,29 @@
       body.dark .code-editor:focus-within {
         outline-color: rgba(122, 186, 255, 0.5);
       }
+      .code-stats {
+        font-size: 12px;
+        color: #888;
+        padding: 6px 4px 0;
+        display: flex;
+        justify-content: space-between;
+      }
+      .code-stats a {
+        color: inherit;
+        text-decoration: none;
+      }
+      .code-stats a:hover {
+        text-decoration: underline;
+      }
 
       #output {
         min-height: 10em;
-        font-family: monospace;
+        font-family: "Fira Code", monospace;
         font-size: 15px;
         padding: 18px;
         color: #222;
+        white-space: pre-wrap;
+        word-break: break-word;
       }
 
       .action-buttons {
@@ -254,6 +270,10 @@
       }
       #copy-url {
         background: linear-gradient(135deg, #b6e0fe 0%, #e0c3fc 100%);
+        color: #222;
+      }
+      #copy-code {
+        background: linear-gradient(135deg, #e0c3fc 0%, #b6e0fe 100%);
         color: #222;
       }
       #screenshot {
@@ -311,10 +331,34 @@
         font-size: 18px;
         margin-left: 8px;
       }
+      .session-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .session-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+      }
+      .session-name {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .session-time {
+        font-size: 11px;
+        color: #999;
+        flex-shrink: 0;
+      }
       .session-item .content-preview {
-        font-size: 14px;
+        font-size: 13px;
         color: #666;
         display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-top: 2px;
       }
       .session-item.new-snippet {
         border: 1.5px dashed rgba(0, 122, 255, 0.4);
@@ -433,6 +477,10 @@
         background: linear-gradient(135deg, #434343 0%, #262626 100%);
         color: #e0e0e0;
       }
+      body.dark #copy-code {
+        background: linear-gradient(135deg, #232526 0%, #414345 100%);
+        color: #e0e0e0;
+      }
       body.dark #screenshot {
         background: linear-gradient(135deg, #232526 0%, #414345 100%);
         color: #e0e0e0;
@@ -537,6 +585,81 @@
         display: inline-block;
         width: 100%;
         background: rgba(248, 81, 73, 0.25);
+      }
+
+      /* Shortcuts Overlay */
+      .shortcuts-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s, visibility 0.2s;
+      }
+      .shortcuts-overlay.visible {
+        opacity: 1;
+        visibility: visible;
+      }
+      .shortcuts-modal {
+        background: #1a1a2e;
+        border-radius: 12px;
+        padding: 20px;
+        min-width: 280px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      }
+      .shortcuts-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        color: #ddd;
+        font-weight: 600;
+      }
+      .shortcuts-header button {
+        background: transparent;
+        border: none;
+        color: #888;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 0;
+        line-height: 1;
+      }
+      .shortcuts-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .shortcuts-list div {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #aaa;
+        font-size: 14px;
+      }
+      .shortcuts-list span {
+        margin-left: auto;
+        color: #888;
+      }
+      .shortcuts-list kbd {
+        background: #2a2a3e;
+        border: 1px solid #444;
+        border-radius: 4px;
+        padding: 3px 7px;
+        font-family: "Fira Code", monospace;
+        font-size: 12px;
+        color: #ddd;
+      }
+      .shortcuts-footer {
+        margin-top: 16px;
+        padding-top: 12px;
+        border-top: 1px solid #333;
+        font-size: 12px;
+        color: #666;
+        text-align: center;
       }
 
       /* Prettier Config Overlay */
@@ -745,10 +868,12 @@
             spellcheck="false"
           ></textarea>
         </div>
+        <div class="code-stats" id="code-stats"></div>
       </div>
       <div class="right-column">
         <div class="action-buttons">
           <button id="run-button">▶️ <span class="btn-text">Run</span></button>
+          <button id="copy-code">📋 <span class="btn-text">Copy</span></button>
           <button id="copy-url">⬆️ <span class="btn-text">Share</span></button>
           <button id="screenshot">📷 <span class="btn-text">Shot</span></button>
         </div>
@@ -792,6 +917,29 @@
         <a href="https://github.com/jamonholmgren/js" target="_blank">source</a>
       </p>
     </footer>
+
+    <div
+      class="shortcuts-overlay"
+      id="shortcuts-overlay"
+      onclick="if(event.target===this)toggleShortcutsOverlay()"
+    >
+      <div class="shortcuts-modal">
+        <div class="shortcuts-header">
+          <span>Keyboard Shortcuts</span>
+          <button onclick="toggleShortcutsOverlay()">&times;</button>
+        </div>
+        <div class="shortcuts-list">
+          <div><kbd>⌘</kbd><kbd>Enter</kbd> <span>Run code</span></div>
+          <div><kbd>⌘</kbd><kbd>S</kbd> <span>Copy share URL</span></div>
+          <div><kbd>⌘</kbd><kbd>⇧</kbd><kbd>P</kbd> <span>Screenshot</span></div>
+          <div><kbd>⌘</kbd><kbd>/</kbd> <span>Show shortcuts</span></div>
+          <div><kbd>Tab</kbd> <span>Indent selection</span></div>
+          <div><kbd>⇧</kbd><kbd>Tab</kbd> <span>Unindent selection</span></div>
+          <div><kbd>Esc</kbd> <span>Close overlays</span></div>
+        </div>
+        <div class="shortcuts-footer">On Windows/Linux, use Ctrl instead of ⌘</div>
+      </div>
+    </div>
 
     <div class="config-overlay" id="prettier-overlay">
       <div class="config-modal">
@@ -851,8 +999,9 @@
       codeBox.addEventListener("input", saveCurrentSession)
       sessionNameInput.addEventListener("input", saveCurrentSession)
 
-      // Line numbers
+      // Line numbers and stats
       const lineNumbers = document.getElementById("line-numbers")
+      const codeStats = document.getElementById("code-stats")
 
       function updateLineNumbers() {
         const lines = codeBox.value.split("\n").length
@@ -861,13 +1010,23 @@
         lineNumbers.innerHTML = nums.join("<br>")
       }
 
+      function updateCodeStats() {
+        const code = codeBox.value
+        const lines = code.split("\n").length
+        const chars = code.length
+        const size = chars < 1024 ? chars + " bytes" : (chars / 1024).toFixed(1) + " kb"
+        codeStats.innerHTML = `${lines} lines · ${size} <a href="#" onclick="toggleShortcutsOverlay(); return false;">⌘?</a>`
+      }
+
       function syncScroll() {
         lineNumbers.scrollTop = codeBox.scrollTop
       }
 
       codeBox.addEventListener("input", updateLineNumbers)
+      codeBox.addEventListener("input", updateCodeStats)
       codeBox.addEventListener("scroll", syncScroll)
       updateLineNumbers()
+      updateCodeStats()
 
       function parseImports(code) {
         const importRegex = /\/\/\s*@import\s+([^/\s]+(?:\/[^/\s]+)*\.js)/g
@@ -1071,6 +1230,7 @@
           id: currentSessionId,
           name: sessionName,
           code: codeBox.value,
+          updated: Date.now(),
         }
 
         // Save the updated sessions back to localStorage
@@ -1092,6 +1252,7 @@
           currentSessionId = sessions[id].id
           outputDiv.textContent = "// run to see output"
           updateLineNumbers()
+          updateCodeStats()
         }
 
         // Clear any existing output
@@ -1112,7 +1273,158 @@
         window.history.replaceState({}, document.title, `${window.location.pathname}${suffix}`)
       }
 
+      const codeTemplates = [
+        {
+          name: "🧭 A* Pathfinding",
+          code: `// A* Pathfinding Algorithm
+// Finds the shortest path through a grid
+
+const grid = [
+  [0, 0, 0, 0, 1, 0],
+  [1, 1, 0, 0, 1, 0],
+  [0, 0, 0, 1, 0, 0],
+  [0, 1, 0, 0, 0, 1],
+  [0, 1, 1, 1, 0, 0],
+  [0, 0, 0, 0, 0, 0],
+]
+
+const start = [0, 0]
+const end = [5, 5]
+
+function heuristic(a, b) {
+  return Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1])
+}
+
+function aStar(grid, start, end) {
+  const rows = grid.length, cols = grid[0].length
+  const openSet = [{ pos: start, g: 0, f: heuristic(start, end), path: [start] }]
+  const visited = new Set()
+  
+  while (openSet.length > 0) {
+    openSet.sort((a, b) => a.f - b.f)
+    const current = openSet.shift()
+    const [x, y] = current.pos
+    const key = \`\${x},\${y}\`
+    
+    if (x === end[0] && y === end[1]) return current.path
+    if (visited.has(key)) continue
+    visited.add(key)
+    
+    for (const [dx, dy] of [[0,1], [1,0], [0,-1], [-1,0]]) {
+      const nx = x + dx, ny = y + dy
+      if (nx >= 0 && nx < rows && ny >= 0 && ny < cols && grid[nx][ny] === 0) {
+        const g = current.g + 1
+        openSet.push({ pos: [nx, ny], g, f: g + heuristic([nx, ny], end), path: [...current.path, [nx, ny]] })
+      }
+    }
+  }
+  return null
+}
+
+const path = aStar(grid, start, end)
+console.log("Path found:", path)
+console.log("\\nGrid with path (★ = path, █ = wall):")
+grid.forEach((row, i) => {
+  console.log(row.map((cell, j) => 
+    path?.some(p => p[0] === i && p[1] === j) ? "★" : cell ? "█" : "·"
+  ).join(" "))
+})`,
+        },
+        {
+          name: "🎅 Secret Santa",
+          code: `// Secret Santa Matcher
+// Randomly pairs people for gift-giving
+
+const participants = [
+  "Alice", "Bob", "Charlie", "Diana", 
+  "Eve", "Frank", "Grace", "Henry"
+]
+
+function secretSanta(people) {
+  const shuffled = [...people].sort(() => Math.random() - 0.5)
+  const pairs = []
+  
+  for (let i = 0; i < shuffled.length; i++) {
+    const giver = shuffled[i]
+    const receiver = shuffled[(i + 1) % shuffled.length]
+    pairs.push({ giver, receiver })
+  }
+  
+  return pairs
+}
+
+console.log("🎄 Secret Santa Pairings 🎄\\n")
+const pairings = secretSanta(participants)
+
+pairings.forEach(({ giver, receiver }) => {
+  console.log(\`🎁 \${giver} → \${receiver}\`)
+})
+
+console.log("\\n✨ Happy gift-giving! ✨")`,
+        },
+        {
+          name: "⚡ Performance Benchmark",
+          code: `// Performance Benchmarking
+// Compare different approaches to the same problem
+
+function benchmark(name, fn, iterations = 10000) {
+  const start = performance.now()
+  for (let i = 0; i < iterations; i++) fn()
+  const elapsed = performance.now() - start
+  return { name, elapsed, opsPerSec: Math.round(iterations / (elapsed / 1000)) }
+}
+
+const testArray = Array.from({ length: 1000 }, (_, i) => i)
+
+const results = [
+  benchmark("for loop", () => {
+    let sum = 0
+    for (let i = 0; i < testArray.length; i++) sum += testArray[i]
+  }),
+  
+  benchmark("for...of", () => {
+    let sum = 0
+    for (const n of testArray) sum += n
+  }),
+  
+  benchmark("forEach", () => {
+    let sum = 0
+    testArray.forEach(n => sum += n)
+  }),
+  
+  benchmark("reduce", () => {
+    testArray.reduce((a, b) => a + b, 0)
+  }),
+]
+
+console.log("⚡ Array Sum Benchmarks (10k iterations)\\n")
+results
+  .sort((a, b) => a.elapsed - b.elapsed)
+  .forEach((r, i) => {
+    const medal = ["🥇", "🥈", "🥉", "  "][i] || "  "
+    console.log(\`\${medal} \${r.name.padEnd(12)} \${r.elapsed.toFixed(2)}ms  (\${r.opsPerSec.toLocaleString()} ops/s)\`)
+  })`,
+        },
+      ]
+
+      function prefillTemplatesIfEmpty() {
+        const sessions = getSessions()
+        if (Object.keys(sessions).length === 0) {
+          codeTemplates.forEach((template, i) => {
+            const id = (Date.now() - i * 1000).toString()
+            sessions[id] = {
+              id,
+              name: template.name.replace(/^[^\w]+/, "").trim(),
+              code: template.code,
+              updated: Date.now() - i * 1000,
+            }
+          })
+          saveSessions(sessions)
+        }
+      }
+
       function updateSessionsList() {
+        prefillTemplatesIfEmpty()
         const sessions = getSessions()
         sessionsList.innerHTML = ""
 
@@ -1128,6 +1440,19 @@
           .forEach((session) => sessionsList.appendChild(createSessionItem(session)))
       }
 
+      function timeAgo(timestamp) {
+        if (!timestamp) return ""
+        const seconds = Math.floor((Date.now() - timestamp) / 1000)
+        if (seconds < 60) return "just now"
+        const minutes = Math.floor(seconds / 60)
+        if (minutes < 60) return minutes + "m ago"
+        const hours = Math.floor(minutes / 60)
+        if (hours < 24) return hours + "h ago"
+        const days = Math.floor(hours / 24)
+        if (days < 30) return days + "d ago"
+        return Math.floor(days / 30) + "mo ago"
+      }
+
       function createSessionItem(session) {
         const sessionItem = document.createElement("div")
         sessionItem.className = "session-item"
@@ -1137,17 +1462,34 @@
           sessionItem.classList.add("active")
         }
 
-        const sessionName = document.createElement("span")
-        sessionName.textContent = session.name.slice(0, 22)
+        const sessionInfo = document.createElement("div")
+        sessionInfo.className = "session-info"
         sessionItem.onclick = () => loadSession(session.id)
 
+        const titleRow = document.createElement("div")
+        titleRow.className = "session-title-row"
+
+        const sessionName = document.createElement("span")
+        sessionName.className = "session-name"
+        sessionName.textContent = session.name.slice(0, 22)
+        titleRow.appendChild(sessionName)
+
+        if (session.updated) {
+          const sessionTime = document.createElement("span")
+          sessionTime.className = "session-time"
+          sessionTime.textContent = timeAgo(session.updated)
+          titleRow.appendChild(sessionTime)
+        }
+
         const contentPreview = document.createElement("span")
-        contentPreview.classList.add("content-preview")
+        contentPreview.className = "content-preview"
         contentPreview.textContent = session.code
           .slice(0, 40)
           .split("\n")
           .find((line) => line.trim() !== "")
-        sessionName.appendChild(contentPreview)
+
+        sessionInfo.appendChild(titleRow)
+        sessionInfo.appendChild(contentPreview)
 
         const deleteButton = document.createElement("button")
         deleteButton.className = "delete-button"
@@ -1159,7 +1501,7 @@
           }
         }
 
-        sessionItem.appendChild(sessionName)
+        sessionItem.appendChild(sessionInfo)
         sessionItem.appendChild(deleteButton)
         return sessionItem
       }
@@ -1187,6 +1529,16 @@
 
         updateSessionsList()
       }
+
+      // Copy code to clipboard
+      const copyCodeButton = document.getElementById("copy-code")
+      copyCodeButton.addEventListener("click", function () {
+        navigator.clipboard.writeText(codeBox.value).then(() => {
+          const orig = copyCodeButton.innerHTML
+          copyCodeButton.innerHTML = '✅ <span class="btn-text">Copy</span>'
+          setTimeout(() => (copyCodeButton.innerHTML = orig), 2000)
+        })
+      })
 
       // Copy the current code as a URL
       copyUrlButton.addEventListener("click", copyUrl)
@@ -1315,11 +1667,26 @@
         }, 0)
       }
 
-      // hijack cmd+s / ctrl+s to copy URL
+      // Keyboard shortcuts
       document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") {
+          shortcutsOverlay.classList.remove("visible")
+        }
         if ((e.metaKey || e.ctrlKey) && e.key === "s") {
           e.preventDefault()
           copyUrl()
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === "Enter") {
+          e.preventDefault()
+          runButton.click()
+        }
+        if ((e.metaKey || e.ctrlKey) && e.key === "/") {
+          e.preventDefault()
+          toggleShortcutsOverlay()
+        }
+        if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === "p") {
+          e.preventDefault()
+          screenshotButton.click()
         }
       })
 
@@ -1343,6 +1710,12 @@
           document.body.classList.remove("dark")
         }
         darkModeButton.textContent = "mode: " + mode()
+      }
+
+      // Shortcuts overlay
+      const shortcutsOverlay = document.getElementById("shortcuts-overlay")
+      function toggleShortcutsOverlay() {
+        shortcutsOverlay.classList.toggle("visible")
       }
 
       // Prettier config
