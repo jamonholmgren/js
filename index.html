@@ -576,15 +576,31 @@
         font-size: 16px;
         padding: 4px 10px;
       }
-      .screenshot-code-container .diff-add {
-        display: inline-block;
+      .screenshot-code-container .diff-line {
+        display: flex;
         width: 100%;
+      }
+      .screenshot-code-container .diff-gutter {
+        width: 1.5em;
+        flex-shrink: 0;
+        text-align: center;
+        user-select: none;
+        opacity: 0.8;
+      }
+      .screenshot-code-container .diff-content {
+        flex: 1;
+      }
+      .screenshot-code-container .diff-add {
         background: rgba(46, 160, 67, 0.25);
       }
+      .screenshot-code-container .diff-add .diff-gutter {
+        color: #3fb950;
+      }
       .screenshot-code-container .diff-del {
-        display: inline-block;
-        width: 100%;
         background: rgba(248, 81, 73, 0.25);
+      }
+      .screenshot-code-container .diff-del .diff-gutter {
+        color: #f85149;
       }
 
       /* Shortcuts Overlay */
@@ -1890,9 +1906,15 @@ results
         const lines = html.split("\n")
         const processed = lines.map((line) => {
           const stripped = line.replace(/<[^>]*>/g, "")
-          if (stripped.startsWith("+")) return `<span class="diff-add">${line}</span>`
-          if (stripped.startsWith("-")) return `<span class="diff-del">${line}</span>`
-          return line
+          if (stripped.startsWith("+")) {
+            const content = line.replace(/^(<[^>]*>)*\+/, "$1")
+            return `<span class="diff-line diff-add"><span class="diff-gutter">+</span><span class="diff-content">${content}</span></span>`
+          }
+          if (stripped.startsWith("-")) {
+            const content = line.replace(/^(<[^>]*>)*-/, "$1")
+            return `<span class="diff-line diff-del"><span class="diff-gutter">-</span><span class="diff-content">${content}</span></span>`
+          }
+          return `<span class="diff-line"><span class="diff-gutter"></span><span class="diff-content">${line}</span></span>`
         })
         screenshotCode.innerHTML = processed.join("\n")
       }
