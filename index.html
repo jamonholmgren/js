@@ -576,31 +576,15 @@
         font-size: 16px;
         padding: 4px 10px;
       }
-      .screenshot-code-container .diff-line {
-        display: flex;
-        width: 100%;
-      }
-      .screenshot-code-container .diff-gutter {
-        width: 1.5em;
-        flex-shrink: 0;
-        text-align: center;
-        user-select: none;
-        opacity: 0.8;
-      }
-      .screenshot-code-container .diff-content {
-        flex: 1;
-      }
       .screenshot-code-container .diff-add {
+        display: inline-block;
+        width: 100%;
         background: rgba(46, 160, 67, 0.25);
       }
-      .screenshot-code-container .diff-add .diff-gutter {
-        color: #3fb950;
-      }
       .screenshot-code-container .diff-del {
+        display: inline-block;
+        width: 100%;
         background: rgba(248, 81, 73, 0.25);
-      }
-      .screenshot-code-container .diff-del .diff-gutter {
-        color: #f85149;
       }
 
       /* Shortcuts Overlay */
@@ -1904,17 +1888,19 @@ results
         if (!settings.diffMode) return
         const html = screenshotCode.innerHTML
         const lines = html.split("\n")
+
+        // Check if any lines start with + or -
+        const hasDiffLines = lines.some((line) => {
+          const stripped = line.replace(/<[^>]*>/g, "")
+          return stripped.startsWith("+") || stripped.startsWith("-")
+        })
+
         const processed = lines.map((line) => {
           const stripped = line.replace(/<[^>]*>/g, "")
-          if (stripped.startsWith("+")) {
-            const content = line.replace(/^(<[^>]*>)*\+/, "$1")
-            return `<span class="diff-line diff-add"><span class="diff-gutter">+</span><span class="diff-content">${content}</span></span>`
-          }
-          if (stripped.startsWith("-")) {
-            const content = line.replace(/^(<[^>]*>)*-/, "$1")
-            return `<span class="diff-line diff-del"><span class="diff-gutter">-</span><span class="diff-content">${content}</span></span>`
-          }
-          return `<span class="diff-line"><span class="diff-gutter"></span><span class="diff-content">${line}</span></span>`
+          if (stripped.startsWith("+")) return `<span class="diff-add">${line}</span>`
+          if (stripped.startsWith("-")) return `<span class="diff-del">${line}</span>`
+          if (hasDiffLines) return "  " + line
+          return line
         })
         screenshotCode.innerHTML = processed.join("\n")
       }
